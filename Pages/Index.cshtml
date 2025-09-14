@@ -1,0 +1,206 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+<div class="text-center">
+    <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
+
+    <form method="post" class="mb-4">
+        <div class="mb-2 fw-semibold fs-5">Wybierz poziom trudności:</div>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <button type="submit" name="Level" value="20" class="btn btn-outline-primary @(Model.Level == 20 ? "active" : "")">Do 20</button>
+            <button type="submit" name="Level" value="40" class="btn btn-outline-primary @(Model.Level == 40 ? "active" : "")">Do 40</button>
+            <button type="submit" name="Level" value="60" class="btn btn-outline-primary @(Model.Level == 60 ? "active" : "")">Do 60</button>
+            <button type="submit" name="Level" value="80" class="btn btn-outline-primary @(Model.Level == 80 ? "active" : "")">Do 80</button>
+            <button type="submit" name="Level" value="100" class="btn btn-outline-primary @(Model.Level == 100 ? "active" : "")">Do 100</button>
+            <button type="submit" name="Level" value="1000" class="btn btn-outline-primary @(Model.Level == 1000 ? "active" : "")">Do 1000</button>
+        </div>
+    </form>
+
+
+    @if (Model.GameWon)
+    {
+        <div class="d-flex flex-column align-items-center mt-5">
+            <div class="alert alert-success display-5 fw-bold px-5 py-4 text-center" role="alert">
+                Gratulacje! Ukończyłeś grę – 3 poprawne odpowiedzi z rzędu!
+            </div>
+            <div class="card shadow-sm mb-3" style="max-width: 420px;">
+                <div class="card-body">
+                    <h5 class="card-title">Historia równań tej próby:</h5>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var row in Model.History ?? new List<string>())
+                        {
+                            var isCorrect = row.Contains("Twoja: ") && row.Split("Twoja: ")[1].Split(')')[0].Trim() == row.Split('=')[1].Split('(')[0].Trim();
+                            var bgClass = isCorrect ? "bg-success text-white" : "bg-danger text-white";
+                            <li class="list-group-item @bgClass">@row</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <form method="post">
+                <input type="hidden" name="Level" value="@Model.Level" />
+                <input type="hidden" name="SolvedQuestions" value="" />
+                <input type="hidden" name="Streak" value="0" />
+                <input type="hidden" name="AttemptsLeft" value="3" />
+                <button type="submit" class="btn btn-success btn-lg mt-3">Zagraj ponownie</button>
+            </form>
+        </div>
+    }
+    else if (Model.GameLost)
+    {
+        <div class="d-flex flex-column align-items-center mt-5">
+            <div class="alert alert-danger display-5 fw-bold px-5 py-4 text-center" role="alert">
+                Przegrałeś! Skończyły się wszystkie życia.
+            </div>
+            <div class="card shadow-sm mb-3" style="max-width: 420px;">
+                <div class="card-body">
+                    <h5 class="card-title">Historia równań tej gry:</h5>
+                    <ul class="list-group list-group-flush">
+                        @foreach (var row in Model.History ?? new List<string>())
+                        {
+                            var isCorrect = row.Contains("Twoja: ") && row.Split("Twoja: ")[1].Split(')')[0].Trim() == row.Split('=')[1].Split('(')[0].Trim();
+                            var bgClass = isCorrect ? "bg-success text-white" : "bg-danger text-white";
+                            <li class="list-group-item @bgClass">@row</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+            <form method="post">
+                <input type="hidden" name="Level" value="@Model.Level" />
+                <input type="hidden" name="SolvedQuestions" value="" />
+                <input type="hidden" name="Streak" value="0" />
+                <input type="hidden" name="AttemptsLeft" value="3" />
+                <input type="hidden" name="GameLost" value="false" />
+                <button type="submit" class="btn btn-danger btn-lg mt-3">Spróbuj ponownie</button>
+            </form>
+        </div>
+    }
+    else if (Model.Question != null)
+    {
+        <div class="mb-3">
+            <div class="d-flex justify-content-center align-items-center gap-2">
+                @for (int i = 1; i <= 3; i++)
+                {
+                    <span class="dot-indicator @(i <= Model.Streak ? "dot-filled" : "dot-empty")"></span>
+                }
+            </div>
+        </div>
+        <div class="mb-2">
+            <div class="d-flex justify-content-center align-items-center gap-1">
+                @for (int i = 1; i <= 3; i++)
+                {
+                    var heartClass = i <= Model.AttemptsLeft ? "heart-full" : "heart-empty";
+                    <span class="heart-indicator @heartClass" title="Życie @(i)">❤️</span>
+                }
+            </div>
+            <div class="small text-muted">Pozostałe życia</div>
+        </div>
+        <form method="post" class="question-form">
+            <input type="hidden" name="Level" value="@Model.Level" />
+            <input type="hidden" name="A" value="@Model.Question?.A" />
+            <input type="hidden" name="B" value="@Model.Question?.B" />
+            <input type="hidden" name="Streak" value="@Model.Streak" />
+            <input type="hidden" name="SolvedQuestions" value="@Model.SolvedQuestions" />
+            <input type="hidden" name="AttemptsLeft" value="@Model.AttemptsLeft" />
+            <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
+            <input type="hidden" name="HistoryRaw" value="@Model.HistoryRaw" />
+            <div class="d-flex justify-content-center align-items-center gap-3 my-4 flex-wrap">
+                <div class="display-3 border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.A</div>
+                <div class="display-3 fw-bold">x</div>
+                <div class="display-3 border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.B</div>
+                <div class="display-3 fw-bold">=</div>
+                <div class="display-3 border border-warning rounded-4 bg-white shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
+                    <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center border-0 bg-transparent p-0" style="width:120px;height:80px;font-size:2.5rem;box-shadow:none;outline:none;" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
+                </div>
+            </div>
+            @if (Model.AnswerChecked)
+            {
+                <div class="mt-2 mb-3 d-flex flex-column align-items-center">
+                    <div class="card shadow-sm border-0 mb-2" style="max-width: 420px;">
+                        <div class="card-body text-center p-3">
+                            <div class="fs-3 mb-2">
+                                <b>@Model.A</b> <span class="mx-1">×</span> <b>@Model.B</b>
+                                @if (Model.IsCorrect || Model.AttemptsLeft == 0)
+                                {
+                                    <span class="mx-1">=</span> <b>@Model.CorrectAnswer</b>
+                                }
+                            </div>
+                            <div class="mb-2">
+                                Twoja odpowiedź: <b>@Model.UserAnswer</b>
+                            </div>
+                            <div class="mb-2">
+                                Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/3
+                            </div>
+                            <div class="mb-2">
+                                Pozostało prób: <b>@Model.AttemptsLeft</b>/3
+                            </div>
+                            @if (Model.IsCorrect)
+                            {
+                                <div class="alert alert-success fw-bold fs-5 mb-2" role="alert">Poprawna odpowiedź! Sukces!</div>
+                            }
+                            else if (Model.AttemptsLeft == 0)
+                            {
+                                <div class="alert alert-danger fw-bold fs-5 mb-2" role="alert">3 błędne próby. Poprawny wynik: <b>@Model.CorrectAnswer</b></div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-danger fw-bold fs-5 mb-2" role="alert">Błędna odpowiedź.</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (Model.GameWon)
+            {
+                <div class="mt-3">
+                    <h2 class="text-success">Wygrałeś! 3 poprawne odpowiedzi z rzędu!</h2>
+                    <form method="post">
+                        <input type="hidden" name="Level" value="@Model.Level" />
+                        <input type="hidden" name="Streak" value="0" />
+                        <button type="submit" class="btn btn-success">Zagraj ponownie</button>
+                    </form>
+                </div>
+            }
+            @if (Model.AnswerChecked)
+            {
+                <button type="submit" class="btn btn-lg mt-2 @(Model.IsCorrect ? "btn-success" : (Model.AttemptsLeft == 0 ? "btn-danger" : "btn-warning"))" onclick="document.getElementById('NextQuestionField').value='true';">
+                    @(Model.IsCorrect ? "Następne pytanie" : (Model.AttemptsLeft == 0 ? "Powtórz" : "Spróbuj ponownie"))
+                </button>
+            }
+            else
+            {
+                <button type="submit" class="btn btn-primary btn-lg mt-2" onclick="document.getElementById('NextQuestionField').value='false';">Sprawdź</button>
+            }
+        </form>
+    }
+    <style>
+        body {
+            /* Tło: lekko podarta kartka (papier) */
+            background-image: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), linear-gradient(135deg, #f8f6f2 90%, #e9e6df 100%);
+            background-repeat: repeat;
+            background-size: auto;
+        }
+        .heart-indicator {
+            display: inline-block;
+            font-size: 2.1rem;
+            margin: 0 4px;
+            transition: filter 0.2s;
+            filter: grayscale(100%) opacity(0.4);
+            text-shadow: 1px 1px 2px #fff, 0 0 2px #e57373;
+        }
+        .heart-full {
+            filter: none;
+            color: #e53935;
+            text-shadow: 1px 1px 2px #fff, 0 0 6px #e57373;
+        }
+        .heart-empty {
+            filter: grayscale(100%) opacity(0.3);
+            color: #bdbdbd;
+        }
+    </style>
+
+    <!-- Usunięto dodatkowy formularz po sprawdzeniu odpowiedzi -->
+</div>
