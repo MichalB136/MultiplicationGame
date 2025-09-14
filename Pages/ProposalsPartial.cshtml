@@ -1,0 +1,23 @@
+@model List<int>
+@if (Model != null && Model.Count > 0)
+{
+    <div class="mt-4">
+        <h5>Propozycje wyników:</h5>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var proposal in Model)
+            {
+                <div class="proposal-tile border rounded p-2 bg-light" style="width: 60px; text-align: center; font-size: 1.2em; cursor: grab;" draggable="true" ondragstart="dragAnswer(event)" data-value="@proposal">
+                    @proposal
+                </div>
+            }
+        </div>
+    </div>
+}
+@* Hidden inputy zawsze w <form> *@
+@if (Model != null)
+{
+    foreach (var proposal in Model)
+    {
+        <input type="hidden" name="proposalsState" value="@proposal" />
+    }
+}

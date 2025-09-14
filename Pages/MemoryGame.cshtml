@@ -1,0 +1,41 @@
+@page
+@model MultiplicationGame.Pages.MemoryGameModel
+@{
+    ViewData["Title"] = "Gra pamięciowa: mnożenie";
+}
+
+<h2>Gra pamięciowa: mnożenie</h2>
+<p>Znajdź pasujące pary: działanie i wynik.</p>
+
+<form method="post">
+    @for (int i = 0; i < Model.Cards.Count; i++)
+    {
+        <input type="hidden" name="CardDisplays" value="@Model.Cards[i].Display" />
+        <input type="hidden" name="CardValues" value="@Model.Cards[i].Value" />
+        <input type="hidden" name="CardIsExpression" value="@Model.Cards[i].IsExpression" />
+    }
+    @for (int i = 0; i < Model.State.Count; i++)
+    {
+        <input type="hidden" name="State" value="@Model.State[i]" />
+    }
+    <div class="d-flex flex-wrap" style="max-width: 600px;">
+        @for (int i = 0; i < Model.Cards.Count; i++)
+        {
+            var card = Model.Cards[i];
+            <button type="submit" name="flipIndex" value="@i" class="memory-card btn btn-light m-2" style="width: 80px; height: 80px; font-size: 1.3em;">
+                @(Model.Flipped[i] || Model.Matched[i] ? card.Display : "?")
+            </button>
+        }
+    </div>
+</form>
+
+@if (Model.Matched.All(x => x))
+{
+    <div class="alert alert-success mt-3">Brawo! Wszystkie pary znalezione!</div>
+    <form method="get"><button class="btn btn-primary">Zagraj ponownie</button></form>
+}
+
+<style>
+.memory-card { transition: background 0.2s; }
+.memory-card:focus { outline: 2px solid #007bff; }
+</style>
