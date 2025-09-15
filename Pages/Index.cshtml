@@ -5,40 +5,43 @@
 }
 
 
-<div class="text-center">
-    <div class="mb-4">
-        <a href="/MemoryGame" class="btn btn-lg btn-warning">Tryb gry pamięciowej: mnożenie</a>
-    </div>
-    <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Główna zawartość -->
+        <div class="col-lg-9 col-md-8">
+            <div class="text-center">
+                <div class="mb-4">
+                    <a href="/MemoryGame" class="btn btn-lg btn-warning">Tryb gry pamięciowej: mnożenie</a>
+                </div>
+                <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
 
-    <form method="post" class="mb-4">
-        <div class="mb-2 fw-semibold fs-5">Wybierz poziom trudności:</div>
-        <div class="d-flex justify-content-center gap-2 flex-wrap">
-            <button type="submit" name="Level" value="20" class="btn btn-outline-primary @(Model.Level == 20 ? "active" : "")">Do 20</button>
-            <button type="submit" name="Level" value="40" class="btn btn-outline-primary @(Model.Level == 40 ? "active" : "")">Do 40</button>
-            <button type="submit" name="Level" value="60" class="btn btn-outline-primary @(Model.Level == 60 ? "active" : "")">Do 60</button>
-            <button type="submit" name="Level" value="80" class="btn btn-outline-primary @(Model.Level == 80 ? "active" : "")">Do 80</button>
-            <button type="submit" name="Level" value="100" class="btn btn-outline-primary @(Model.Level == 100 ? "active" : "")">Do 100</button>
-            <button type="submit" name="Level" value="1000" class="btn btn-outline-primary @(Model.Level == 1000 ? "active" : "")">Do 1000</button>
-        </div>
-    </form>
+                <form method="post" class="mb-4">
+                    <div class="mb-2 fw-semibold fs-5">Wybierz poziom trudności:</div>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <button type="submit" name="Level" value="20" class="btn btn-outline-primary @(Model.Level == 20 ? "active" : "")">Do 20</button>
+                        <button type="submit" name="Level" value="40" class="btn btn-outline-primary @(Model.Level == 40 ? "active" : "")">Do 40</button>
+                        <button type="submit" name="Level" value="60" class="btn btn-outline-primary @(Model.Level == 60 ? "active" : "")">Do 60</button>
+                        <button type="submit" name="Level" value="80" class="btn btn-outline-primary @(Model.Level == 80 ? "active" : "")">Do 80</button>
+                        <button type="submit" name="Level" value="100" class="btn btn-outline-primary @(Model.Level == 100 ? "active" : "")">Do 100</button>
+                        <button type="submit" name="Level" value="1000" class="btn btn-outline-primary @(Model.Level == 1000 ? "active" : "")">Do 1000</button>
+                    </div>
+                </form>
 
 
     @if (Model.GameWon)
     {
         <div class="d-flex flex-column align-items-center mt-5">
             <div class="alert alert-success display-5 fw-bold px-5 py-4 text-center" role="alert">
-                Gratulacje! Ukończyłeś grę – 3 poprawne odpowiedzi z rzędu!
+                Gratulacje! Ukończyłeś grę – @MultiplicationGame.Pages.IndexModel.RequiredAnswers poprawnych odpowiedzi z rzędu!
             </div>
             <div class="card shadow-sm mb-3" style="max-width: 420px;">
                 <div class="card-body">
                     <h5 class="card-title">Historia równań tej próby:</h5>
                     <ul class="list-group list-group-flush">
-                        @foreach (var row in Model.History ?? new List<string>())
+                        @foreach (var entry in Model.HistoryWithCorrectness)
                         {
-                            var isCorrect = row.Contains("Twoja: ") && row.Split("Twoja: ")[1].Split(')')[0].Trim() == row.Split('=')[1].Split('(')[0].Trim();
-                            var bgClass = isCorrect ? "bg-success text-white" : "bg-danger text-white";
-                            <li class="list-group-item @bgClass">@row</li>
+                            var bgClass = entry.IsCorrect ? "bg-success text-white" : "bg-danger text-white";
+                            <li class="list-group-item @bgClass">@entry.Text</li>
                         }
                     </ul>
                 </div>
@@ -62,11 +65,10 @@
                 <div class="card-body">
                     <h5 class="card-title">Historia równań tej gry:</h5>
                     <ul class="list-group list-group-flush">
-                        @foreach (var row in Model.History ?? new List<string>())
+                        @foreach (var entry in Model.HistoryWithCorrectness)
                         {
-                            var isCorrect = row.Contains("Twoja: ") && row.Split("Twoja: ")[1].Split(')')[0].Trim() == row.Split('=')[1].Split('(')[0].Trim();
-                            var bgClass = isCorrect ? "bg-success text-white" : "bg-danger text-white";
-                            <li class="list-group-item @bgClass">@row</li>
+                            var bgClass = entry.IsCorrect ? "bg-success text-white" : "bg-danger text-white";
+                            <li class="list-group-item @bgClass">@entry.Text</li>
                         }
                     </ul>
                 </div>
@@ -83,14 +85,6 @@
     }
     else if (Model.Question != null)
     {
-        <div class="mb-3">
-            <div class="d-flex justify-content-center align-items-center gap-2">
-                @for (int i = 1; i <= 3; i++)
-                {
-                    <span class="dot-indicator @(i <= Model.Streak ? "dot-filled" : "dot-empty")"></span>
-                }
-            </div>
-        </div>
         <div class="mb-2">
             <div class="d-flex justify-content-center align-items-center gap-1">
                 @for (int i = 1; i <= 3; i++)
@@ -135,7 +129,7 @@
                                 Twoja odpowiedź: <b>@Model.UserAnswer</b>
                             </div>
                             <div class="mb-2">
-                                Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/3
+                                Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/@MultiplicationGame.Pages.IndexModel.RequiredAnswers
                             </div>
                             <div class="mb-2">
                                 Pozostało prób: <b>@Model.AttemptsLeft</b>/3
@@ -159,7 +153,7 @@
             @if (Model.GameWon)
             {
                 <div class="mt-3">
-                    <h2 class="text-success">Wygrałeś! 3 poprawne odpowiedzi z rzędu!</h2>
+                    <h2 class="text-success">Wygrałeś! @MultiplicationGame.Pages.IndexModel.RequiredAnswers poprawnych odpowiedzi z rzędu!</h2>
                     <form method="post">
                         <input type="hidden" name="Level" value="@Model.Level" />
                         <input type="hidden" name="Streak" value="0" />
@@ -186,6 +180,84 @@
             background-repeat: repeat;
             background-size: auto;
         }
+        
+        /* Panel postępu */
+        .progress-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 2px solid #e3f2fd;
+            position: sticky;
+            top: 20px;
+        }
+        
+        .progress-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            max-width: 200px;
+            margin: 0 auto;
+        }
+        
+        .progress-square {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+            background: #f8f9fa;
+            color: #6c757d;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+        }
+        
+        .progress-square.completed {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            border-color: #28a745;
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
+        }
+        
+        .progress-square.current {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+            border-color: #ffc107;
+            animation: pulse 2s infinite;
+            box-shadow: 0 2px 8px rgba(255, 193, 7, 0.4);
+        }
+        
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Responsywność */
+        @@media (max-width: 768px) {
+            .progress-panel {
+                position: relative;
+                margin-top: 20px;
+                margin-bottom: 20px;
+            }
+            
+            .progress-grid {
+                grid-template-columns: repeat(5, 1fr);
+                max-width: 100%;
+            }
+            
+            .progress-square {
+                width: 35px;
+                height: 35px;
+                font-size: 12px;
+            }
+        }
+        
         .heart-indicator {
             display: inline-block;
             font-size: 2.1rem;
@@ -205,5 +277,34 @@
         }
     </style>
 
-    <!-- Usunięto dodatkowy formularz po sprawdzeniu odpowiedzi -->
+                    <!-- Usunięto dodatkowy formularz po sprawdzeniu odpowiedzi -->
+            </div>
+        </div>
+        
+        <!-- Panel postępu po prawej stronie -->
+        <div class="col-lg-3 col-md-4">
+            @if (Model.Question != null)
+            {
+                <div class="progress-panel">
+                    <h5 class="text-center mb-3">Postęp</h5>
+                    <div class="progress-grid">
+                        @for (int i = 1; i <= MultiplicationGame.Pages.IndexModel.RequiredAnswers; i++)
+                        {
+                            var isCompleted = i <= Model.Streak;
+                            var isCurrent = i == Model.Streak + 1 && !Model.IsGameWon;
+                            <div class="progress-square @(isCompleted ? "completed" : "") @(isCurrent ? "current" : "")">
+                                @i
+                            </div>
+                        }
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">@Model.Streak/@MultiplicationGame.Pages.IndexModel.RequiredAnswers ukończone</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <style>
 </div>

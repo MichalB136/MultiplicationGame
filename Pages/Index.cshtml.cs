@@ -1,13 +1,19 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MultiplicationGame.Models;
+using MultiplicationGame.Services;
+using System.Collections.Immutable;
 
 namespace MultiplicationGame.Pages;
 
 public class IndexModel : PageModel
 {
+    private const int REQUIRED_CORRECT_ANSWERS = 10;
+    
     [BindProperty]
     public string HistoryRaw { get; set; } = "";
-    public List<string> History { get; set; } = new List<string>();
+    public ImmutableList<string> History { get; set; } = ImmutableList<string>.Empty;
+    public ImmutableList<HistoryEntryDto> HistoryWithCorrectness { get; set; } = ImmutableList<HistoryEntryDto>.Empty;
     [BindProperty]
     public bool NextQuestion { get; set; }
     [BindProperty]
@@ -15,13 +21,13 @@ public class IndexModel : PageModel
     public bool GameWon { get; set; }
     [BindProperty]
     public bool GameLost { get; set; } = false;
-    private readonly ILogger<IndexModel> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IGameService _gameService;
+    private readonly IGameStateService _gameStateService;
 
-    public IndexModel(ILogger<IndexModel> logger, IHttpClientFactory httpClientFactory)
+    public IndexModel(IGameService gameService, IGameStateService gameStateService)
     {
-        _logger = logger;
-        _httpClientFactory = httpClientFactory;
+        _gameService = gameService;
+        _gameStateService = gameStateService;
     }
 
     [BindProperty]
@@ -42,130 +48,148 @@ public class IndexModel : PageModel
     [BindProperty]
     public int AttemptsLeft { get; set; } = 3;
 
-    public async Task OnGetAsync()
+    // Właściwości z logiką biznesową
+    public bool IsGameWon => Streak >= REQUIRED_CORRECT_ANSWERS;
+    public bool ShouldContinueGame => Streak < REQUIRED_CORRECT_ANSWERS;
+    public int Progress => Math.Min(Streak, REQUIRED_CORRECT_ANSWERS);
+    public static int RequiredAnswers => REQUIRED_CORRECT_ANSWERS;
+
+    public void OnGet()
     {
         // Nic nie rób, czekaj na wybór poziomu
     }
 
-    public async Task OnPostAsync()
+    public void OnPost()
     {
-        var baseUrl = $"{Request.Scheme}://{Request.Host}";
-        var client = _httpClientFactory.CreateClient();
-        client.BaseAddress = new Uri(baseUrl);
+        RestoreHistoryFromRaw();
 
-        // Odtwórz historię z pola tekstowego
-        History = string.IsNullOrEmpty(HistoryRaw)
-            ? new List<string>()
-            : HistoryRaw.Split("||").ToList();
-
-        // Nowe równanie tylko po poprawnej odpowiedzi lub po 3 błędnych próbach lub na starcie
-        if (A == 0 && B == 0 || (AttemptsLeft == 0 && NextQuestion) || (NextQuestion && IsCorrect))
+        if (ShouldStartNewGame())
         {
-            // Resetuj całą próbę po 3 błędnych odpowiedziach lub na starcie
-            Streak = 0;
-            AttemptsLeft = 3;
-            SolvedQuestions = "";
-            History = new List<string>();
-            HistoryRaw = "";
-            GameLost = false;
-            var url = $"/api/Multiplication/question?level={Level}&solved={SolvedQuestions}";
-            var q = await client.GetFromJsonAsync<QuestionDto>(url);
-            if (q != null)
-            {
-                Question = q;
-                Level = q.Level;
-                A = q.A;
-                B = q.B;
-            }
-            AnswerChecked = false;
-            IsCorrect = false;
-            CorrectAnswer = 0;
+            StartNewGame();
             return;
         }
 
-    // Usunięto automatyczne pobieranie nowego pytania przy sprawdzaniu odpowiedzi
+        ProcessAnswer();
+    }
 
-        // Sprawdź odpowiedź
-        var response = await client.PostAsJsonAsync("/api/Multiplication/answer", new { A, B, UserAnswer });
-        if (response.IsSuccessStatusCode)
+    private void RestoreHistoryFromRaw()
+    {
+        History = _gameStateService.ParseHistory(HistoryRaw);
+        HistoryWithCorrectness = _gameStateService.ParseHistoryWithCorrectness(HistoryRaw);
+    }
+
+    private bool ShouldStartNewGame() =>
+        A == 0 && B == 0 || (AttemptsLeft == 0 && NextQuestion) || (NextQuestion && IsCorrect);
+
+    private void StartNewGame()
+    {
+        ResetGameState();
+        var question = _gameService.GetQuestion(Level, SolvedQuestions);
+        ApplyQuestion(question);
+        ResetQuestionState();
+    }
+
+    private void ResetGameState()
+    {
+        Streak = 0;
+        AttemptsLeft = 3;
+        SolvedQuestions = "";
+        History = ImmutableList<string>.Empty;
+        HistoryRaw = "";
+        GameLost = false;
+    }
+
+    private void ApplyQuestion(QuestionDto question)
+    {
+        Question = question;
+        Level = question.Level;
+        A = question.A;
+        B = question.B;
+    }
+
+    private void ResetQuestionState()
+    {
+        AnswerChecked = false;
+        IsCorrect = false;
+        CorrectAnswer = 0;
+    }
+
+    private void ProcessAnswer()
+    {
+        var result = _gameService.CheckAnswer(UserAnswer, A, B);
+        ApplyAnswerResult(result);
+
+        if (IsCorrect)
         {
-            var result = await response.Content.ReadFromJsonAsync<AnswerResultDto>();
-            AnswerChecked = true;
-            IsCorrect = result?.IsCorrect ?? false;
-            CorrectAnswer = result?.Correct ?? 0;
-            if (IsCorrect)
-            {
-                Streak++;
-                // Dodaj pytanie do listy rozwiązanych
-                var solved = (SolvedQuestions ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).ToList();
-                var key = $"{A}-{B}";
-                if (!solved.Contains(key))
-                    solved.Add(key);
-                SolvedQuestions = string.Join(";", solved);
-                // Nie resetuj AttemptsLeft po poprawnej odpowiedzi
-                // Dodaj do historii
-                History.Add($"{A} × {B} = {CorrectAnswer} (Twoja: {UserAnswer})");
-                HistoryRaw = string.Join("||", History);
-                if (Streak < 3)
-                {
-                    var url = $"/api/Multiplication/question?level={Level}&solved={SolvedQuestions}";
-                    var q = await client.GetFromJsonAsync<QuestionDto>(url);
-                    if (q != null)
-                    {
-                        Question = q;
-                        Level = q.Level;
-                        A = q.A;
-                        B = q.B;
-                    }
-                    AnswerChecked = false;
-                    IsCorrect = false;
-                    CorrectAnswer = 0;
-                    UserAnswer = 0;
-                }
-                else
-                {
-                    GameWon = true;
-                }
-            }
-            else
-            {
-                // Każda błędna odpowiedź odejmuje życie i resetuje streak
-                AttemptsLeft--;
-                Streak = 0;
-                // Dodaj do historii
-                History.Add($"{A} × {B} = {CorrectAnswer} (Twoja: {UserAnswer})");
-                HistoryRaw = string.Join("||", History);
-                if (AttemptsLeft <= 0)
-                {
-                    // Po 3 błędnych próbach resetuj solved, wyczyść historię po kliknięciu dalej
-                    SolvedQuestions = "";
-                    GameLost = true;
-                    // Wyświetl poprawny wynik, nie pobieraj nowego pytania
-                    return;
-                }
-                // Po każdej błędnej odpowiedzi wyświetl komunikat, nie resetuj całej próby
-                // Jeśli Question jest nullem, ustaw je na podstawie A i B
-                if (Question == null)
-                {
-                    Question = new QuestionDto { A = A, B = B, Level = Level };
-                }
-            }
-            if (Streak >= 3)
-            {
-                GameWon = true;
-            }
+            HandleCorrectAnswer();
+        }
+        else
+        {
+            HandleIncorrectAnswer();
+        }
+
+        if (IsGameWon)
+        {
+            GameWon = true;
         }
     }
 
-    public class QuestionDto
+    private void ApplyAnswerResult(AnswerResultDto? result)
     {
-        public int A { get; set; }
-        public int B { get; set; }
-        public int Level { get; set; }
+        AnswerChecked = true;
+        IsCorrect = result?.IsCorrect ?? false;
+        CorrectAnswer = result?.Correct ?? 0;
     }
-    public class AnswerResultDto
+
+    private void HandleCorrectAnswer()
     {
-        public bool IsCorrect { get; set; }
-        public int Correct { get; set; }
+        Streak++;
+        UpdateSolvedQuestions();
+        AddToHistory();
+
+        if (ShouldContinueGame)
+        {
+            LoadNextQuestion();
+        }
+        else
+        {
+            GameWon = true;
+        }
+    }
+
+    private void UpdateSolvedQuestions()
+    {
+        SolvedQuestions = _gameStateService.UpdateSolvedQuestions(SolvedQuestions, A, B);
+    }
+
+    private void AddToHistory()
+    {
+        var entry = _gameStateService.CreateHistoryEntry(A, B, CorrectAnswer, UserAnswer);
+        History = History.Add(entry);
+        HistoryRaw = _gameStateService.SerializeHistory(History);
+    }
+
+    private void LoadNextQuestion()
+    {
+        var question = _gameService.GetQuestion(Level, SolvedQuestions);
+        ApplyQuestion(question);
+        ResetQuestionState();
+        UserAnswer = 0;
+    }
+
+    private void HandleIncorrectAnswer()
+    {
+        AttemptsLeft--;
+        AddToHistory();
+
+        if (AttemptsLeft <= 0)
+        {
+            Streak = 0;  // Reset postępu tylko po utracie wszystkich żyć
+            SolvedQuestions = "";
+            GameLost = true;
+            return;
+        }
+
+        Question ??= new QuestionDto(A, B, Level);
     }
 }

@@ -1,9 +1,14 @@
+using MultiplicationGame.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
-builder.Services.AddHttpClient();
+
+// Register game services
+builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<IGameStateService, GameStateService>();
 
 var app = builder.Build();
 
@@ -26,4 +31,4 @@ app.MapStaticAssets();
 app.MapControllers();
 app.MapRazorPages().WithStaticAssets();
 
-app.Run();
+await app.RunAsync();
