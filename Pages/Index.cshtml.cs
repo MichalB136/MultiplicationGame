@@ -1,3 +1,4 @@
+// ...existing code...
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MultiplicationGame.Models;
@@ -8,8 +9,20 @@ namespace MultiplicationGame.Pages;
 
 public class IndexModel : PageModel
 {
+    [BindProperty]
+    public int LearningStep { get; set; } = 0;
+    public int Step => LearningStep;
     private const int REQUIRED_CORRECT_ANSWERS = 10;
-    
+
+    public enum LearningMode
+    {
+        Normal,
+        Learning,
+        Training,
+        Mixed,
+        Timed
+    }
+
     [BindProperty]
     public string HistoryRaw { get; set; } = "";
     public ImmutableList<string> History { get; set; } = ImmutableList<string>.Empty;
@@ -23,6 +36,9 @@ public class IndexModel : PageModel
     public bool GameLost { get; set; } = false;
     private readonly IGameService _gameService;
     private readonly IGameStateService _gameStateService;
+
+    [BindProperty]
+    public LearningMode Mode { get; set; } = LearningMode.Normal;
 
     public IndexModel(IGameService gameService, IGameStateService gameStateService)
     {
@@ -56,11 +72,49 @@ public class IndexModel : PageModel
 
     public void OnGet()
     {
-        // Nic nie rób, czekaj na wybór poziomu
+        // Tryb można ustawić przez query string, domyślnie Normal
+        if (Request.Query.TryGetValue("mode", out var modeVal) && Enum.TryParse(modeVal, out LearningMode mode))
+        {
+            Mode = mode;
+        }
+
+        // Also allow mode to be persisted via cookie when changed client-side
+        if (Request.Cookies.TryGetValue("mg_mode", out var cookieModeVal) && Enum.TryParse(cookieModeVal, out LearningMode cookieMode))
+        {
+            Mode = cookieMode;
+        }
+
+        // If client requests only the interactive fragment, we'll let the Razor page
+        // render and return only the fragment HTML in the response body. That logic
+        // is implemented by checking Request.Query["partial"] in OnGet and then
+        // using the Razor page to render only the fragment. We'll rely on the page
+        // rendering pipeline — the fetch call on the client expects the full
+        // fragment HTML string to replace innerHTML.
     }
 
     public void OnPost()
     {
+        // If client used cookie-based mode toggling, prefer cookie value to avoid losing Level
+        if (Request.Cookies.TryGetValue("mg_mode", out var cookieModeValPost) && Enum.TryParse(cookieModeValPost, out LearningMode cookieMode))
+        {
+            Mode = cookieMode;
+        }
+        // Obsługa kroków nauki w trybie Learning
+        if (Mode == LearningMode.Learning)
+        {
+            // Jeśli użytkownik kliknął "Następny krok" zamiast "Sprawdź"
+            if (Request.Form.ContainsKey("NextLearningStep"))
+            {
+                LearningStep++;
+                // Nie sprawdzamy odpowiedzi, tylko przechodzimy do kolejnego kroku
+                Question = new QuestionDto(A, B, Level);
+                return;
+            }
+            else
+            {
+                LearningStep = 0; // Reset przy nowym pytaniu lub sprawdzeniu
+            }
+        }
         RestoreHistoryFromRaw();
 
         if (ShouldStartNewGame())
@@ -146,6 +200,9 @@ public class IndexModel : PageModel
         Streak++;
         UpdateSolvedQuestions();
         AddToHistory();
+        // Zachowaj tryb nauki
+        if (Mode == LearningMode.Learning)
+            Mode = LearningMode.Learning;
 
         if (ShouldContinueGame)
         {
@@ -175,6 +232,9 @@ public class IndexModel : PageModel
         ApplyQuestion(question);
         ResetQuestionState();
         UserAnswer = 0;
+        // Zachowaj tryb nauki
+        if (Mode == LearningMode.Learning)
+            Mode = LearningMode.Learning;
     }
 
     private void HandleIncorrectAnswer()

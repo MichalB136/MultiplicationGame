@@ -29,3 +29,50 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Progress panel styles for interactive fragment */
+.progress-panel {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+  border: 1px solid #e9f5ff;
+}
+.progress-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  justify-items: center;
+}
+.progress-square {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #6c757d;
+  background: #f8f9fa;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.progress-square.completed {
+  background: linear-gradient(135deg,#28a745,#20c997);
+  color: #fff;
+  border-color: #28a745;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(40,167,69,0.12);
+}
+.progress-square.current {
+  background: linear-gradient(135deg,#ffc107,#fd7e14);
+  color: #fff;
+  border-color: #ffc107;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}

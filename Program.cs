@@ -5,6 +5,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddControllers();
+// HttpClient factory for internal fragment fetching
+builder.Services.AddHttpClient();
 
 // Register game services
 builder.Services.AddScoped<IGameService, GameService>();

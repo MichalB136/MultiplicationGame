@@ -64,42 +64,52 @@ namespace MultiplicationGame.Pages
                 OnGet();
                 return;
             }
+            // At this point we've validated the lists are non-null and aligned.
+            var cardDisplays = CardDisplays!;
+            var cardValues = CardValues!;
+            var cardIsExpression = CardIsExpression!;
+            var state = State!;
+
             Cards = new List<Card>();
-            for (int i = 0; i < CardDisplays.Count; i++)
+            for (int i = 0; i < cardDisplays.Count; i++)
             {
-                Cards.Add(new Card { Display = CardDisplays[i], Value = CardValues[i], IsExpression = CardIsExpression[i] });
+                Cards.Add(new Card { Display = cardDisplays[i], Value = cardValues[i], IsExpression = cardIsExpression[i] });
             }
-            if (FlipIndex.HasValue && FlipIndex.Value >= 0 && FlipIndex.Value < State.Count)
+            if (FlipIndex.HasValue && FlipIndex.Value >= 0 && FlipIndex.Value < state.Count)
             {
                 // Odkryj kartę
-                if (State[FlipIndex.Value] == 0)
-                    State[FlipIndex.Value] = 1;
+                if (state[FlipIndex.Value] == 0)
+                    state[FlipIndex.Value] = 1;
 
                 // Sprawdź, czy odkryto dwie
-                var flipped = State.Select((v, i) => (v, i)).Where(x => x.v == 1).ToList();
+                var flipped = state.Select((v, i) => (v, i)).Where(x => x.v == 1).ToList();
                 if (flipped.Count == 2)
                 {
                     var a = Cards[flipped[0].i];
                     var b = Cards[flipped[1].i];
                     if (a.Value == b.Value && a.IsExpression != b.IsExpression)
                     {
-                        State[flipped[0].i] = 2;
-                        State[flipped[1].i] = 2;
+                        state[flipped[0].i] = 2;
+                        state[flipped[1].i] = 2;
                     }
                     else
                     {
-                        State[flipped[0].i] = 0;
-                        State[flipped[1].i] = 0;
+                        state[flipped[0].i] = 0;
+                        state[flipped[1].i] = 0;
                     }
                 }
             }
+            // persist any changes back to the bound State list
+            State = state;
             UpdateLists();
         }
 
         private void UpdateLists()
         {
-            Flipped = State.Select(x => x == 1).ToList();
-            Matched = State.Select(x => x == 2).ToList();
+            // Guard against State being null (shouldn't happen, but be defensive)
+            var s = State ?? Enumerable.Empty<int>().ToList();
+            Flipped = s.Select(x => x == 1).ToList();
+            Matched = s.Select(x => x == 2).ToList();
         }
     }
 }
