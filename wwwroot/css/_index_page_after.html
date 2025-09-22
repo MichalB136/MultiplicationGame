@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home page - MultiplicationGame</title>
+    <script type="importmap">{
+  "imports": {
+    "./js/site.js": "./js/site.y0ewm4fvsx.js",
+    "./lib/bootstrap/dist/js/bootstrap.bundle.js": "./lib/bootstrap/dist/js/bootstrap.bundle.4094rpi4f9.js",
+    "./lib/bootstrap/dist/js/bootstrap.bundle.min.js": "./lib/bootstrap/dist/js/bootstrap.bundle.min.hd3gran6i8.js",
+    "./lib/bootstrap/dist/js/bootstrap.esm.js": "./lib/bootstrap/dist/js/bootstrap.esm.ltid2c489k.js",
+    "./lib/bootstrap/dist/js/bootstrap.esm.min.js": "./lib/bootstrap/dist/js/bootstrap.esm.min.8vyfqsqgz1.js",
+    "./lib/bootstrap/dist/js/bootstrap.min.js": "./lib/bootstrap/dist/js/bootstrap.min.4d85u1mtcx.js",
+    "./lib/bootstrap/dist/js/bootstrap.js": "./lib/bootstrap/dist/js/bootstrap.u9q1upor1n.js",
+    "./lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.js": "./lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.03hjc8e09r.js",
+    "./lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js": "./lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.48y08845bh.js",
+    "./lib/jquery-validation/dist/additional-methods.js": "./lib/jquery-validation/dist/additional-methods.83jwlth58m.js",
+    "./lib/jquery-validation/dist/additional-methods.min.js": "./lib/jquery-validation/dist/additional-methods.min.mrlpezrjn3.js",
+    "./lib/jquery-validation/dist/jquery.validate.min.js": "./lib/jquery-validation/dist/jquery.validate.min.gk0pw8i4co.js",
+    "./lib/jquery-validation/dist/jquery.validate.js": "./lib/jquery-validation/dist/jquery.validate.worgj0nhwm.js",
+    "./lib/jquery/dist/jquery.js": "./lib/jquery/dist/jquery.d6nrnj6jjx.js",
+    "./lib/jquery/dist/jquery.min.js": "./lib/jquery/dist/jquery.min.m9qm4tazc0.js",
+    "./lib/jquery/dist/jquery.slim.js": "./lib/jquery/dist/jquery.slim.jjsuc0puko.js",
+    "./lib/jquery/dist/jquery.slim.min.js": "./lib/jquery/dist/jquery.slim.min.9vr69e8ynj.js"
+  }
+}</script>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.43atpzeawx.css" />
+    <link rel="stylesheet" href="/css/site.4t4o75bntr.css" />
+    <!-- <link rel="stylesheet" href="~/MultiplicationGame.styles.css" asp-append-version="true" /> -->
+</head>
+<body>
+    <header b-pqniai2uuz>
+        <nav b-pqniai2uuz class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div b-pqniai2uuz class="container">
+                <a class="navbar-brand" href="/">MultiplicationGame</a>
+                <button b-pqniai2uuz class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span b-pqniai2uuz class="navbar-toggler-icon"></span>
+                </button>
+                <div b-pqniai2uuz class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul b-pqniai2uuz class="navbar-nav flex-grow-1">
+                        <li b-pqniai2uuz class="nav-item">
+                            <a class="nav-link text-dark" href="/">Home</a>
+                        </li>
+                        <li b-pqniai2uuz class="nav-item">
+                            <a class="nav-link text-dark" href="/Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div b-pqniai2uuz class="page-center-wrapper">
+        <div b-pqniai2uuz class="page-center-inner container">
+            <main b-pqniai2uuz role="main" class="pb-3">
+                
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- Centered main column -->
+        <div class="col-lg-8 col-md-10">
+            <div class="text-center">
+                
+                <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
+
+                <form method="post" class="mb-4">
+                    <div class="row mb-2">
+                        <div class="col-md-6 mb-2 mb-md-0">
+                            <div class="fw-semibold fs-5">Wybierz poziom trudności:</div>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                <input type="hidden" name="Mode" value="Normal" />
+                                <button type="submit" name="Level" value="20" class="btn btn-outline-primary active">Do 20</button>
+                                <button type="submit" name="Level" value="40" class="btn btn-outline-primary ">Do 40</button>
+                                <button type="submit" name="Level" value="60" class="btn btn-outline-primary ">Do 60</button>
+                                <button type="submit" name="Level" value="80" class="btn btn-outline-primary ">Do 80</button>
+                                <button type="submit" name="Level" value="100" class="btn btn-outline-primary ">Do 100</button>
+                                <button type="submit" name="Level" value="1000" class="btn btn-outline-primary ">Do 1000</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="fw-semibold fs-5">Tryb nauki:</div>
+                            <select id="modeSelect" class="form-select form-select-lg w-auto d-inline-block" style="min-width:180px;">
+                                <option value="Normal" selected="selected">Standardowy</option>
+                                <option value="Learning">Nauka (wyjaśnienia)</option>
+                                <option value="Training">Trening (wybrana tabliczka)</option>
+                                <option value="Mixed">Mieszany</option>
+                                <option value="Timed">Na czas</option>
+                            </select>
+                        </div>
+                    </div>
+                <input name="__RequestVerificationToken" type="hidden" value="CfDJ8BzrdC07qWNEoZO8NXSIAAqcJqevvh3EMvqzyWuXO_9Za0sbgNNWQaxOGmddzzR1EWXmRLy357OduMVlC2EqfGradnqd-tgeaLrF1s_M1_MlWh3g-2pd45vxv0OM1PfkWh2cMJeabgYxyVJkvIBdYgo" /></form>
+
+                <!-- AJAX-replaceable fragment: contains question area and progress panel -->
+                <div id="interactiveFragment">
+                    <!-- Interactive fragment partial: extracted from Index.cshtml -->
+
+    <div class="mb-2">
+        <div class="d-flex justify-content-center align-items-center gap-1">
+                <span class="heart-indicator heart-full" title="Życie 1">❤️</span>
+                <span class="heart-indicator heart-full" title="Życie 2">❤️</span>
+                <span class="heart-indicator heart-full" title="Życie 3">❤️</span>
+        </div>
+        <div class="small text-muted">Pozostałe życia</div>
+    </div>
+    <form method="post" class="question-form">
+        <input type="hidden" name="Mode" value="Normal" />
+        <input type="hidden" name="Level" value="20" />
+        <input type="hidden" name="A" value="7" />
+        <input type="hidden" name="B" value="2" />
+        <input type="hidden" name="Streak" value="0" />
+        <input type="hidden" name="SolvedQuestions" value="" />
+        <input type="hidden" name="AttemptsLeft" value="3" />
+        <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
+        <input type="hidden" name="HistoryRaw" value="" />
+        <div class="d-flex justify-content-center align-items-center gap-3 my-4 flex-wrap">
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">7</div>
+            <div class="display-3 fw-bold">x</div>
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">2</div>
+            <div class="display-3 fw-bold">=</div>
+                <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
+                    <div class="operand-input" style="width:100%;">
+                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center" autocomplete="off" pattern="[0-9]*"  />
+                    </div>
+                </div>
+        </div>
+            <button type="submit" class="btn btn-primary btn-lg mt-2" onclick="document.getElementById('NextQuestionField').value='false';">Sprawdź</button>
+    <input name="__RequestVerificationToken" type="hidden" value="CfDJ8BzrdC07qWNEoZO8NXSIAAqcJqevvh3EMvqzyWuXO_9Za0sbgNNWQaxOGmddzzR1EWXmRLy357OduMVlC2EqfGradnqd-tgeaLrF1s_M1_MlWh3g-2pd45vxv0OM1PfkWh2cMJeabgYxyVJkvIBdYgo" /></form>
+
+<div class="progress-panel">
+    <style>
+        /* Inline fallback styles to ensure progress grid renders when external CSS is not yet applied */
+        .progress-panel .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 8px; justify-items: center; align-items: center; width:100%; }
+        .progress-panel .progress-square { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6c757d; background:#f8f9fa; border:2px solid #ddd; }
+        .progress-panel .progress-square.completed { background: linear-gradient(135deg,#28a745,#20c997); color:#fff; border-color:#28a745; }
+        .progress-panel .progress-square.current { background: linear-gradient(135deg,#ffc107,#fd7e14); color:#fff; border-color:#ffc107; }
+    </style>
+    <h5 class="text-center mb-3">Postęp</h5>
+    <div class="progress-grid">
+            <div class="progress-square  current">
+                1
+            </div>
+            <div class="progress-square  ">
+                2
+            </div>
+            <div class="progress-square  ">
+                3
+            </div>
+            <div class="progress-square  ">
+                4
+            </div>
+            <div class="progress-square  ">
+                5
+            </div>
+            <div class="progress-square  ">
+                6
+            </div>
+            <div class="progress-square  ">
+                7
+            </div>
+            <div class="progress-square  ">
+                8
+            </div>
+            <div class="progress-square  ">
+                9
+            </div>
+            <div class="progress-square  ">
+                10
+            </div>
+    </div>
+    <div class="text-center mt-3">
+        <small class="text-muted">0/10 ukończone</small>
+    </div>
+</div>
+
+<script>
+    (function() {
+        try {
+            var container = document.getElementById('interactiveFragment');
+            var searchRoot = container || document;
+            var grid = searchRoot.querySelector('.progress-panel .progress-grid');
+            if (grid) {
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(44px, 1fr))';
+                grid.style.gap = '8px';
+                grid.style.justifyItems = 'center';
+                grid.style.alignItems = 'center';
+                grid.style.width = '100%';
+            }
+        } catch (e) { console && console.warn && console.warn('progress-grid init failed', e); }
+    })();
+</script>
+
+                </div>
+
+            </div>
+        </div>
+
+    <!-- right column removed to allow centering -->
+    </div>
+</div>
+
+<script>
+    // Cookie helpers and AJAX mode/fragment logic (kept minimal here)
+    function setCookie(name, value, days) {
+        var expires = "";
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/";
+    }
+    function getCookie(name) {
+        var nameEQ = name + "=";
+        var ca = document.cookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+            if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+        }
+        return null;
+    }
+
+    var modeSelect = document.getElementById('modeSelect');
+    if (modeSelect) {
+        modeSelect.addEventListener('change', async function (e) {
+            var newMode = e.target.value;
+            try {
+                var resp = await fetch('/api/mode', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: newMode })
+                });
+                if (!resp.ok) { var failUrl = new URL(window.location.href); failUrl.searchParams.set('mode', newMode); window.location.href = failUrl.toString(); return; }
+                try { setCookie('mg_mode', newMode, 30); } catch {}
+                var fragResp = await fetch('/api/fragment?mode=' + encodeURIComponent(newMode), { credentials: 'same-origin' });
+                if (fragResp.ok) {
+                    var html = await fragResp.text();
+                    var container = document.getElementById('interactiveFragment');
+                    if (container) { container.innerHTML = html; try { if (typeof initInteractiveFragment === 'function') initInteractiveFragment(); } catch (ex) { console.warn(ex); } }
+                    else { window.location.reload(); }
+                } else { window.location.reload(); }
+            } catch (ex) { var url = new URL(window.location.href); url.searchParams.set('mode', newMode); window.location.href = url.toString(); }
+        });
+    }
+
+    // Initialize behaviors after fragment replacement
+    async function initInteractiveFragment() {
+        var marker = document.getElementById('learningAutoAdvance');
+        if (marker) {
+            try {
+                var step = parseInt(marker.getAttribute('data-step')) || 0;
+                var total = parseInt(marker.getAttribute('data-total')) || 0;
+                if (step < total - 1) {
+                    setTimeout(function() {
+                        var form = document.createElement('form'); form.method = 'post'; form.style.display = 'none';
+                        var names = ['A','B','Level','Mode','LearningStep','Streak','SolvedQuestions','AttemptsLeft','HistoryRaw'];
+                        var values = [marker.getAttribute('data-a'), marker.getAttribute('data-b'), marker.getAttribute('data-level'), marker.getAttribute('data-mode'), (step+1).toString(), marker.getAttribute('data-streak'), marker.getAttribute('data-solved'), marker.getAttribute('data-attempts'), marker.getAttribute('data-history')];
+                        for (var i=0;i<names.length;i++) { var input = document.createElement('input'); input.type='hidden'; input.name=names[i]; input.value=values[i]||''; form.appendChild(input); }
+                        var nextStep = document.createElement('input'); nextStep.type='hidden'; nextStep.name='NextLearningStep'; nextStep.value='true'; form.appendChild(nextStep);
+                        // Copy antiforgery token from the fragment if present so the auto-post passes validation
+                        try {
+                            var existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                            if (existingToken && existingToken.value) {
+                                var af = document.createElement('input'); af.type='hidden'; af.name='__RequestVerificationToken'; af.value = existingToken.value; form.appendChild(af);
+                            }
+                        } catch (e) { console && console.warn && console.warn('copy antiforgery token failed', e); }
+                        document.body.appendChild(form); form.submit();
+                    }, 900);
+                }
+            } catch (e) { console.warn('learning auto-advance init failed', e); }
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function() { initInteractiveFragment(); });
+
+</script>
+
+            </main>
+        </div>
+    </div>
+
+    <footer b-pqniai2uuz class="border-top footer text-muted">
+        <div b-pqniai2uuz class="container">
+            &copy; 2025 - MultiplicationGame - <a href="/Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="/lib/jquery/dist/jquery.min.m9qm4tazc0.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.hd3gran6i8.js"></script>
+    <script src="/js/site.y0ewm4fvsx.js"></script>
+
+    
+</body>
+</html>

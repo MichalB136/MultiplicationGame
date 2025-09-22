@@ -2,6 +2,41 @@ html {
   font-size: 14px;
 }
 
+/* Page centering wrapper to center main content */
+.page-center-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 120px); /* account for header/footer height */
+  padding: 24px;
+}
+.page-center-inner {
+  width: 100%;
+  max-width: 1100px;
+}
+
+/* Scoped centering helpers: use `.center-row` to opt-in centering behaviour */
+.page-center-inner .center-row {
+  display: flex;
+  justify-content: center;
+}
+.page-center-inner .centered-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Stronger centering: make the inner container-fluid centered and prevent rows from stretching full width */
+.page-center-inner .container-fluid {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+.page-center-inner .row {
+  width: 100%;
+}
+
 @media (min-width: 768px) {
   html {
     font-size: 16px;
@@ -37,12 +72,15 @@ body {
   padding: 16px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.06);
   border: 1px solid #e9f5ff;
+  max-width: 360px; /* keep grid compact so it doesn't stretch into a single column */
 }
 .progress-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
   gap: 8px;
   justify-items: center;
+  align-items: center;
+  width: 100%;
 }
 .progress-square {
   width: 44px;
@@ -75,4 +113,93 @@ body {
   0% { transform: scale(1); }
   50% { transform: scale(1.06); }
   100% { transform: scale(1); }
+}
+.text-center .display-3 {
+  margin-left: auto;
+  margin-right: auto;
+}
+.question-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* A dedicated class for operand display boxes, to avoid overriding Bootstrap's
+   `.display-3` typography globally. Apply `.operand-display` where needed. */
+.operand-display {
+  box-sizing: border-box;
+}
+
+/* Center dot animations and color grid inside the fragment */
+#interactiveFragment .dot-groups-anim {
+  justify-content: center !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#interactiveFragment .color-grid {
+  justify-content: center !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Restrict input sizing for the answer input within the fragment only. */
+#interactiveFragment .question-form > .d-flex .operand-input input[name="UserAnswer"] {
+  width: 120px;
+  height: 80px;
+  max-width: 100%;
+}
+
+/* Ensure the page-center inner container actually centers its content */
+.page-center-inner.container, .page-center-inner > .container {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Make the interactive fragment layout center its two main parts (question + progress) */
+#interactiveFragment {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  align-items: center; /* center vertically for a balanced layout */
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+/* Let the question area size itself instead of stretching full width. */
+#interactiveFragment .question-form {
+  max-width: 720px;
+  width: auto;
+  margin: 0 auto;
+  flex: 0 1 720px; /* don't force full width, allow shrink/grow for responsiveness */
+}
+
+/* Make the answer input visually match the operand boxes in the fragment only */
+#interactiveFragment .question-form .display-3 input.form-control {
+  height: 80px; /* match display box height */
+  font-size: 2.5rem; /* large number feel */
+  padding: 0.375rem 0.75rem; /* keep centered text but reduce extra padding */
+  background: transparent; /* match bg handled by the container */
+  border: none; /* container provides visible border */
+  box-shadow: none; /* avoid inner shadows */
+  text-align: center;
+}
+
+/* Keep the progress panel compact and allow it to sit beside the question area. */
+#interactiveFragment .progress-panel {
+  margin: 0 auto;
+  flex: 0 0 320px; /* fixed-ish width so grid doesn't collapse into a single column */
+}
+
+@media (max-width: 767.98px) {
+  /* stack vertically on small screens */
+  #interactiveFragment {
+    flex-direction: column;
+    align-items: center;
+  }
+  #interactiveFragment .question-form { max-width: 100%; }
 }

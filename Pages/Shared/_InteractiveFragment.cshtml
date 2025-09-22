@@ -82,13 +82,15 @@ else if (Model.Question != null)
         <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
         <input type="hidden" name="HistoryRaw" value="@Model.HistoryRaw" />
         <div class="d-flex justify-content-center align-items-center gap-3 my-4 flex-wrap">
-            <div class="display-3 border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.A</div>
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.A</div>
             <div class="display-3 fw-bold">x</div>
-            <div class="display-3 border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.B</div>
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.B</div>
             <div class="display-3 fw-bold">=</div>
-            <div class="display-3 border border-warning rounded-4 bg-white shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
-                <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center border-0 bg-transparent p-0" style="width:120px;height:80px;font-size:2.5rem;box-shadow:none;outline:none;" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
-            </div>
+                <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
+                    <div class="operand-input" style="width:100%;">
+                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
+                    </div>
+                </div>
         </div>
         @if (Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning && Model.A > 0 && Model.B > 0)
         {
@@ -102,11 +104,11 @@ else if (Model.Question != null)
                 </div>
                 <div class="mb-2">Proces mnożenia krok po kroku:</div>
                 <div class="addition-steps mb-2" id="additionSteps">
-                    @for (int i = 0; i < Math.Min(Model.Step+1, Model.B); i++)
+                    @for (int i = 0; i < Model.B; i++)
                     {
+                        var terms = string.Join(" + ", Enumerable.Repeat(Model.A.ToString(), i + 1));
                         <div class="fs-5">
-                            @Model.A + @((i == 0) ? "" : $" + {Model.A}")
-                            <span class="text-secondary">= @((i+1)*Model.A)</span>
+                            @terms <span class="text-secondary">= @((i + 1) * Model.A)</span>
                         </div>
                     }
                 </div>
@@ -116,9 +118,11 @@ else if (Model.Question != null)
                     @for (int i = 0; i < Model.A; i++)
                     {
                         <div class="dot-group" style="display: flex; flex-direction: row; gap: 6px; margin-bottom: 6px;">
-                            @for (int j = 0; j < Math.Min(Model.Step+1, Model.B); j++)
+                            @for (int j = 0; j < Model.B; j++)
                             {
-                                <span class="dot-anim" style="display:inline-block;width:20px;height:20px;background:hsl(@(210 + 20 * i),80%,60%);border-radius:50%;margin:1px;opacity:0;animation: dotIn 0.5s forwards;animation-delay:@((i*Model.B+j)*0.07)s;"></span>
+                                var delay = ((i * Model.B + j) * 0.07);
+                                var delayStr = delay.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+                                <span class="dot-anim" style="display:inline-block;width:20px;height:20px;background:hsl(@(210 + 20 * i),80%,60%);border-radius:50%;margin:1px;opacity:0;animation: dotIn 0.5s forwards;animation-delay:@(delayStr)s;"></span>
                             }
                         </div>
                     }
@@ -128,7 +132,7 @@ else if (Model.Question != null)
                     <div class="color-grid" style="display:grid;grid-template-columns:repeat(@Model.B,24px);gap:4px;justify-content:center;">
                         @for (int i = 0; i < Model.A; i++)
                         {
-                            @for (int j = 0; j < Math.Min(Model.Step+1, Model.B); j++)
+                            @for (int j = 0; j < Model.B; j++)
                             {
                                 <span style="display:inline-block;width:22px;height:22px;background:hsl(@(120 + 20 * i + 10 * j),70%,70%);border-radius:6px;"></span>
                             }
@@ -217,6 +221,13 @@ else if (Model.Question != null)
 }
 
 <div class="progress-panel">
+    <style>
+        /* Inline fallback styles to ensure progress grid renders when external CSS is not yet applied */
+        .progress-panel .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 8px; justify-items: center; align-items: center; width:100%; }
+        .progress-panel .progress-square { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6c757d; background:#f8f9fa; border:2px solid #ddd; }
+        .progress-panel .progress-square.completed { background: linear-gradient(135deg,#28a745,#20c997); color:#fff; border-color:#28a745; }
+        .progress-panel .progress-square.current { background: linear-gradient(135deg,#ffc107,#fd7e14); color:#fff; border-color:#ffc107; }
+    </style>
     <h5 class="text-center mb-3">Postęp</h5>
     <div class="progress-grid">
         @for (int i = 1; i <= MultiplicationGame.Pages.IndexModel.RequiredAnswers; i++)
@@ -232,3 +243,21 @@ else if (Model.Question != null)
         <small class="text-muted">@Model.Streak/@MultiplicationGame.Pages.IndexModel.RequiredAnswers ukończone</small>
     </div>
 </div>
+
+<script>
+    (function() {
+        try {
+            var container = document.getElementById('interactiveFragment');
+            var searchRoot = container || document;
+            var grid = searchRoot.querySelector('.progress-panel .progress-grid');
+            if (grid) {
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(auto-fit, minmax(44px, 1fr))';
+                grid.style.gap = '8px';
+                grid.style.justifyItems = 'center';
+                grid.style.alignItems = 'center';
+                grid.style.width = '100%';
+            }
+        } catch (e) { console && console.warn && console.warn('progress-grid init failed', e); }
+    })();
+</script>

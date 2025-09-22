@@ -4,14 +4,12 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <!-- Left / main column -->
-        <div class="col-lg-9 col-md-8">
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- Centered main column -->
+        <div class="col-lg-8 col-md-10">
             <div class="text-center">
-                <div class="mb-4">
-                    <a href="/MemoryGame" class="btn btn-lg btn-warning">Tryb gry pamięciowej: mnożenie</a>
-                </div>
+                
                 <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
 
                 <form method="post" class="mb-4">
@@ -49,10 +47,7 @@
             </div>
         </div>
 
-        <!-- Right column can remain empty; progress is inside the partial -->
-        <div class="col-lg-3 col-md-4">
-        </div>
-
+    <!-- right column removed to allow centering -->
     </div>
 </div>
 
@@ -113,6 +108,13 @@
                         var values = [marker.getAttribute('data-a'), marker.getAttribute('data-b'), marker.getAttribute('data-level'), marker.getAttribute('data-mode'), (step+1).toString(), marker.getAttribute('data-streak'), marker.getAttribute('data-solved'), marker.getAttribute('data-attempts'), marker.getAttribute('data-history')];
                         for (var i=0;i<names.length;i++) { var input = document.createElement('input'); input.type='hidden'; input.name=names[i]; input.value=values[i]||''; form.appendChild(input); }
                         var nextStep = document.createElement('input'); nextStep.type='hidden'; nextStep.name='NextLearningStep'; nextStep.value='true'; form.appendChild(nextStep);
+                        // Copy antiforgery token from the fragment if present so the auto-post passes validation
+                        try {
+                            var existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
+                            if (existingToken && existingToken.value) {
+                                var af = document.createElement('input'); af.type='hidden'; af.name='__RequestVerificationToken'; af.value = existingToken.value; form.appendChild(af);
+                            }
+                        } catch (e) { console && console.warn && console.warn('copy antiforgery token failed', e); }
                         document.body.appendChild(form); form.submit();
                     }, 900);
                 }

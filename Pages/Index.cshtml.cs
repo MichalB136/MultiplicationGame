@@ -84,6 +84,27 @@ public class IndexModel : PageModel
             Mode = cookieMode;
         }
 
+        // Ensure a question is available for the initial page render so the
+        // interactive fragment shows the standard question area (product boxes)
+        // instead of only the progress panel. Use the game service to get a
+        // question for the current Level and solved questions state.
+        if (Question == null)
+        {
+            try
+            {
+                var question = _gameService.GetQuestion(Level, SolvedQuestions ?? string.Empty);
+                if (question != null)
+                {
+                    ApplyQuestion(question);
+                }
+            }
+            catch
+            {
+                // If question retrieval fails, leave Question null so fragment
+                // fallback (progress panel) will render; avoid breaking page.
+            }
+        }
+
         // If client requests only the interactive fragment, we'll let the Razor page
         // render and return only the fragment HTML in the response body. That logic
         // is implemented by checking Request.Query["partial"] in OnGet and then

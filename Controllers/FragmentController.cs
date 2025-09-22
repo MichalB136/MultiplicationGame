@@ -16,15 +16,17 @@ namespace MultiplicationGame.Controllers
     [Route("api/[controller]")]
     public class FragmentController : ControllerBase
     {
-        private readonly IRazorViewEngine _viewEngine;
-        private readonly ITempDataProvider _tempDataProvider;
-        private readonly IServiceProvider _serviceProvider;
+    private readonly IRazorViewEngine _viewEngine;
+    private readonly ITempDataProvider _tempDataProvider;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly Microsoft.AspNetCore.Antiforgery.IAntiforgery _antiforgery;
 
-        public FragmentController(IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider)
+        public FragmentController(IRazorViewEngine viewEngine, ITempDataProvider tempDataProvider, IServiceProvider serviceProvider, Microsoft.AspNetCore.Antiforgery.IAntiforgery antiforgery)
         {
             _viewEngine = viewEngine;
             _tempDataProvider = tempDataProvider;
             _serviceProvider = serviceProvider;
+            _antiforgery = antiforgery;
         }
 
         [HttpGet]
@@ -54,6 +56,39 @@ namespace MultiplicationGame.Controllers
                 return StatusCode(500, new { error = "Interactive fragment view not found" });
             }
 
+            // If the fragment is requested in Learning mode, ensure there's an active question so
+            // the learning UI (addition steps, dot groups, auto-advance) is rendered in the partial.
+            if (model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning)
+            {
+                var question = gameService.GetQuestion(level: 20, solvedQuestions: string.Empty);
+                model.Question = question;
+                model.A = question.A;
+                model.B = question.B;
+                model.Level = question.Level;
+                model.LearningStep = 0;
+            }
+
+            // For other modes, ensure there's at least one question populated so the
+            // standard/normal UI renders (otherwise the partial only shows the progress panel).
+            if (model.Question == null)
+            {
+                try
+                {
+                    var question = gameService.GetQuestion(level: model.Level, solvedQuestions: model.SolvedQuestions ?? string.Empty);
+                    if (question != null)
+                    {
+                        model.Question = question;
+                        model.A = question.A;
+                        model.B = question.B;
+                        model.Level = question.Level;
+                    }
+                }
+                catch
+                {
+                    // Swallow errors to avoid fragment rendering failure; progress panel fallback will still show.
+                }
+            }
+
             var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
             {
                 Model = model
@@ -63,10 +98,17 @@ namespace MultiplicationGame.Controllers
 
             var viewContext = new ViewContext(actionContext, viewResult.View, viewDictionary, tempData, sw, new HtmlHelperOptions());
 
+            // Ensure antiforgery tokens are generated and stored as cookies in the response
+            try
+            {
+                _antiforgery?.GetAndStoreTokens(HttpContext);
+            }
+            catch { /* swallow; fragment rendering should still proceed */ }
+
             await viewResult.View.RenderAsync(viewContext);
 
             var rendered = sw.ToString();
-            return Content(rendered, "text/html");
+            return Content(rendered, "text/html; charset=utf-8");
         }
     }
 }
