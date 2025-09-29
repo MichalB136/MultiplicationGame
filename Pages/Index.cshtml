@@ -24,11 +24,13 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="fw-semibold fs-5">Tryb nauki:</div>
-                            <select id="modeSelect" class="form-select form-select-lg w-auto d-inline-block" style="min-width:180px;">
-                                <option value="Normal" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Normal ? "selected" : null)">Standardowy</option>
-                                <option value="Learning" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning ? "selected" : null)">Nauka (wyjaśnienia)</option>
-                            </select>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="fw-semibold fs-5 mb-0">Tryb nauki:</div>
+                                <select id="modeSelect" class="form-select form-select-lg w-auto d-inline-block" style="min-width:180px;">
+                                    <option value="Normal" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Normal ? "selected" : null)">Standardowy</option>
+                                    <option value="Learning" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning ? "selected" : null)">Nauka (wyjaśnienia)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </form>

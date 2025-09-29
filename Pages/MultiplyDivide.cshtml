@@ -1,0 +1,83 @@
+@page
+@model MultiplicationGame.Pages.MultiplyDivideModel
+@{
+    ViewData["Title"] = "Gra: Mnożenie / Dzielenie";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <h1 class="display-5">Gra: Mnożenie / Dzielenie</h1>
+
+            <form method="post" class="mb-3">
+                <div class="d-flex justify-content-center gap-2 mb-2">
+                    <select name="Operation" class="form-select w-auto">
+                        <option value="Multiply" selected="@(Model.Operation=="Multiply"?"selected":null)">Mnożenie</option>
+                        <option value="Divide" selected="@(Model.Operation=="Divide"?"selected":null)">Dzielenie (całkowite)</option>
+                    </select>
+                    <select name="ViewMode" class="form-select w-auto">
+                        <option value="Classic" selected="@(Model.ViewMode=="Classic"?"selected":null)">Klasyczny</option>
+                        <option value="Vertical" selected="@(Model.ViewMode=="Vertical"?"selected":null)">Słupkowy</option>
+                    </select>
+                    <select name="MaxFactor" class="form-select w-auto">
+                        <option value="10" selected="@(Model.MaxFactor==10?"selected":null)">Do 10</option>
+                        <option value="20" selected="@(Model.MaxFactor==20?"selected":null)">Do 20</option>
+                        <option value="100" selected="@(Model.MaxFactor==100?"selected":null)">Do 100</option>
+                    </select>
+                    <button type="submit" name="New" value="true" class="btn btn-primary">Nowa</button>
+                </div>
+            </form>
+
+            @if (Model.QuestionA == 0 && Model.QuestionB == 0)
+            {
+                <div class="alert alert-secondary">Wygeneruj nowe działanie klikając "Nowa".</div>
+            }
+            else
+            {
+                <div class="card mx-auto" style="max-width:480px;">
+                    <div class="card-body">
+                        @if (Model.ViewMode == "Classic")
+                        {
+                            <div class="fs-2 mb-3">@Model.QuestionA × @Model.QuestionB = ?</div>
+                        }
+                        else
+                        {
+                            <div class="vertical-view text-end fs-2 mb-3" style="font-family:monospace;">
+                                <div>@Model.QuestionA</div>
+                                <div>× @Model.QuestionB</div>
+                                <div>─────</div>
+                            </div>
+                        }
+
+                        <form method="post" class="d-flex gap-2 justify-content-center">
+                            <input type="hidden" name="Operation" value="@Model.Operation" />
+                            <input type="hidden" name="ViewMode" value="@Model.ViewMode" />
+                            <input type="hidden" name="QuestionA" value="@Model.QuestionA" />
+                            <input type="hidden" name="QuestionB" value="@Model.QuestionB" />
+                            <input type="number" name="UserAnswer" class="form-control w-50 text-center" autocomplete="off" value="@(Model.UserAnswer==0?"":Model.UserAnswer.ToString())" />
+                            <button type="submit" class="btn btn-success">Sprawdź</button>
+                        </form>
+
+                        @if (Model.Checked)
+                        {
+                            <div class="mt-3">
+                                @if (Model.IsCorrect)
+                                {
+                                    <div class="alert alert-success">Poprawnie! Wynik: @Model.CorrectAnswer</div>
+                                }
+                                else
+                                {
+                                    <div class="alert alert-danger">Błędna odpowiedź. Poprawny wynik: @Model.CorrectAnswer</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .vertical-view div { padding: 0 12px; }
+</style>
