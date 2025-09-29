@@ -40,7 +40,10 @@ namespace MultiplicationGame.Controllers
             // If mode query provided, set model.Mode accordingly
             if (!string.IsNullOrEmpty(mode) && System.Enum.TryParse(mode, out MultiplicationGame.Pages.IndexModel.LearningMode parsed))
             {
-                model.Mode = parsed;
+                if (parsed == MultiplicationGame.Pages.IndexModel.LearningMode.Normal || parsed == MultiplicationGame.Pages.IndexModel.LearningMode.Learning)
+                {
+                    model.Mode = parsed;
+                }
             }
             else if (HttpContext.Request.Cookies.TryGetValue("mg_mode", out var cookieMode) && System.Enum.TryParse(cookieMode, out MultiplicationGame.Pages.IndexModel.LearningMode cookieParsed))
             {
@@ -60,7 +63,9 @@ namespace MultiplicationGame.Controllers
             // the learning UI (addition steps, dot groups, auto-advance) is rendered in the partial.
             if (model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning)
             {
-                var question = gameService.GetQuestion(level: 20, solvedQuestions: string.Empty);
+                // Use the model's configured level instead of a hard-coded value so Learning mode
+                // behaves consistently with the chosen difficulty.
+                var question = gameService.GetQuestion(level: model.Level, solvedQuestions: string.Empty);
                 model.Question = question;
                 model.A = question.A;
                 model.B = question.B;

@@ -11,18 +11,23 @@ public interface IGameService
 
 public sealed class GameService : IGameService
 {
-    private static readonly int[] Levels = { 20, 40, 60, 80, 100, 1000 };
     private readonly Random _random = new();
+    private readonly GameSettings _settings;
+
+    public GameService(Microsoft.Extensions.Options.IOptions<GameSettings> options)
+    {
+        _settings = options?.Value ?? new GameSettings();
+    }
 
     public QuestionDto GetQuestion(int level, string solvedQuestions)
     {
-        if (!Levels.Contains(level))
+        if (!_settings.Levels.Contains(level))
             return new QuestionDto(0, 0, level);
 
         var solved = ParseSolvedQuestions(solvedQuestions);
         var allQuestions = GenerateAllQuestions(level);
         var available = FilterAvailableQuestions(allQuestions, solved);
-        
+
         if (available.Count == 0)
             return new QuestionDto(0, 0, level);
 
@@ -33,9 +38,9 @@ public sealed class GameService : IGameService
     private static HashSet<string> ParseSolvedQuestions(string solvedQuestions) =>
         new((solvedQuestions ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries));
 
-    private static List<(int a, int b)> GenerateAllQuestions(int level)
+    private List<(int a, int b)> GenerateAllQuestions(int level)
     {
-        var maxNum = level == 1000 ? 1000 : 10;
+        var maxNum = level == 1000 ? 1000 : _settings.DefaultMaxMultiplier;
         var allQuestions = new List<(int a, int b)>();
         
         for (var i = 1; i <= maxNum; i++)
@@ -57,16 +62,22 @@ public sealed class GameService : IGameService
 
     private (int a, int b) SelectQuestion(List<(int a, int b)> available)
     {
-        var withOne = available.Where(q => q.a == 1 || q.b == 1).ToList();
-        var withoutOne = available.Where(q => q.a != 1 && q.b != 1).ToList();
-        
-        if (withOne.Count == 0 || withoutOne.Count == 0)
+        // Reduce frequency of configured low-probability factors
+        var lowProbabilityFactors = new HashSet<int>(_settings.LowProbabilityFactors ?? Array.Empty<int>());
+
+        var undesired = available.Where(q => lowProbabilityFactors.Contains(q.a) || lowProbabilityFactors.Contains(q.b)).ToList();
+        var desired = available.Where(q => !lowProbabilityFactors.Contains(q.a) && !lowProbabilityFactors.Contains(q.b)).ToList();
+
+        // If one group is empty, fall back to uniform random selection
+        if (undesired.Count == 0 || desired.Count == 0)
             return available[_random.Next(available.Count)];
-            
+
+        // Give undesired pairs a smaller chance (percentage configured in settings)
+        var chance = Math.Clamp(_settings.LowFactorChancePercent, 0, 100);
         var roll = _random.Next(100);
-        return roll < 20 
-            ? withOne[_random.Next(withOne.Count)]
-            : withoutOne[_random.Next(withoutOne.Count)];
+        return roll < chance
+            ? undesired[_random.Next(undesired.Count)]
+            : desired[_random.Next(desired.Count)];
     }
 
     public AnswerResultDto CheckAnswer(int userAnswer, int a, int b)

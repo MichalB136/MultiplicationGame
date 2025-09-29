@@ -17,10 +17,7 @@ public class IndexModel : PageModel
     public enum LearningMode
     {
         Normal,
-        Learning,
-        Training,
-        Mixed,
-        Timed
+        Learning
     }
 
     [BindProperty]
@@ -47,7 +44,7 @@ public class IndexModel : PageModel
     }
 
     [BindProperty]
-    public int Level { get; set; } = 20;
+    public int Level { get; set; } = 100;
     [BindProperty]
     public int A { get; set; }
     [BindProperty]
@@ -126,10 +123,12 @@ public class IndexModel : PageModel
             // Jeśli użytkownik kliknął "Następny krok" zamiast "Sprawdź"
             if (Request.Form.ContainsKey("NextLearningStep"))
             {
-                LearningStep++;
-                // Nie sprawdzamy odpowiedzi, tylko przechodzimy do kolejnego kroku
-                Question = new QuestionDto(A, B, Level);
-                return;
+                    LearningStep++;
+                    // Restore history so the UI continues showing previous attempts
+                    RestoreHistoryFromRaw();
+                    // Nie sprawdzamy odpowiedzi, tylko przechodzimy do kolejnego kroku
+                    Question = new QuestionDto(A, B, Level);
+                    return;
             }
             else
             {

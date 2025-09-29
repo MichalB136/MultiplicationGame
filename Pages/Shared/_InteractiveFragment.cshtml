@@ -87,8 +87,8 @@ else if (Model.Question != null)
             <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.B</div>
             <div class="display-3 fw-bold">=</div>
                 <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
-                    <div class="operand-input" style="width:100%;">
-                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
+                    <div class="operand-input" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:0.25rem;">
+                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center answer-input" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
                     </div>
                 </div>
         </div>
@@ -258,6 +258,32 @@ else if (Model.Question != null)
                 grid.style.alignItems = 'center';
                 grid.style.width = '100%';
             }
+            // Focus the answer input (if present and editable) so user can type immediately
+            try {
+                var ans = searchRoot.querySelector('input[name="UserAnswer"]');
+                if (ans && !ans.readOnly) {
+                    ans.focus();
+                    if (ans.select) ans.select();
+                }
+            } catch (e) { /* ignore focus errors */ }
         } catch (e) { console && console.warn && console.warn('progress-grid init failed', e); }
     })();
 </script>
+
+<style>
+    /* Make the answer input visually fit the operand box */
+    .operand-input .answer-input {
+        height: 100%;
+        border: none !important;
+        background: transparent !important;
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        font-size: 2.4rem !important; /* match display-3 sizing */
+        line-height: 1 !important;
+        box-sizing: border-box !important;
+    }
+    .operand-input .answer-input:focus {
+        outline: none;
+        box-shadow: none;
+    }
+</style>

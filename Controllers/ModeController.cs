@@ -20,8 +20,10 @@ namespace MultiplicationGame.Controllers
             if (string.IsNullOrWhiteSpace(modeVal))
                 return BadRequest(new { error = "Mode is required" });
 
-            // validate against known modes
-            if (!Enum.TryParse<Pages.IndexModel.LearningMode>(modeVal, true, out var _))
+            // validate and accept only Normal and Learning modes
+            if (!Enum.TryParse<Pages.IndexModel.LearningMode>(modeVal, true, out var parsed))
+                return BadRequest(new { error = "Invalid mode" });
+            if (parsed != Pages.IndexModel.LearningMode.Normal && parsed != Pages.IndexModel.LearningMode.Learning)
                 return BadRequest(new { error = "Invalid mode" });
 
             // set a cookie so subsequent requests see the mode

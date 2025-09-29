@@ -15,15 +15,12 @@
                 <form method="post" class="mb-4">
                     <div class="row mb-2">
                         <div class="col-md-6 mb-2 mb-md-0">
-                            <div class="fw-semibold fs-5">Wybierz poziom trudności:</div>
-                            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <div class="fw-semibold fs-5">Poziom trudności:</div>
+                            <div class="d-flex justify-content-center gap-2 flex-wrap align-items-center">
                                 <input type="hidden" name="Mode" value="@Model.Mode" />
-                                <button type="submit" name="Level" value="20" class="btn btn-outline-primary @(Model.Level == 20 ? "active" : "")">Do 20</button>
-                                <button type="submit" name="Level" value="40" class="btn btn-outline-primary @(Model.Level == 40 ? "active" : "")">Do 40</button>
-                                <button type="submit" name="Level" value="60" class="btn btn-outline-primary @(Model.Level == 60 ? "active" : "")">Do 60</button>
-                                <button type="submit" name="Level" value="80" class="btn btn-outline-primary @(Model.Level == 80 ? "active" : "")">Do 80</button>
-                                <button type="submit" name="Level" value="100" class="btn btn-outline-primary @(Model.Level == 100 ? "active" : "")">Do 100</button>
-                                <button type="submit" name="Level" value="1000" class="btn btn-outline-primary @(Model.Level == 1000 ? "active" : "")">Do 1000</button>
+                                <!-- Single fixed level: 100 -->
+                                <span class="badge bg-primary fs-6">Do 100</span>
+                                <input type="hidden" name="Level" value="100" />
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -31,9 +28,6 @@
                             <select id="modeSelect" class="form-select form-select-lg w-auto d-inline-block" style="min-width:180px;">
                                 <option value="Normal" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Normal ? "selected" : null)">Standardowy</option>
                                 <option value="Learning" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning ? "selected" : null)">Nauka (wyjaśnienia)</option>
-                                <option value="Training" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Training ? "selected" : null)">Trening (wybrana tabliczka)</option>
-                                <option value="Mixed" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Mixed ? "selected" : null)">Mieszany</option>
-                                <option value="Timed" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Timed ? "selected" : null)">Na czas</option>
                             </select>
                         </div>
                     </div>

@@ -9,6 +9,10 @@ builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 
 // Register game services
+// Bind GameSettings from configuration
+builder.Services.Configure<GameSettings>(builder.Configuration.GetSection("GameSettings"));
+
+// Register game services
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IGameStateService, GameStateService>();
 
