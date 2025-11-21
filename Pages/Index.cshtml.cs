@@ -1,6 +1,7 @@
 // ...existing code...
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
 using MultiplicationGame.Models;
 using MultiplicationGame.Services;
 using System.Collections.Immutable;
@@ -12,7 +13,7 @@ public class IndexModel : PageModel
     [BindProperty]
     public int LearningStep { get; set; } = 0;
     public int Step => LearningStep;
-    private const int REQUIRED_CORRECT_ANSWERS = 10;
+    private int _requiredCorrectAnswers = 10;
 
     public enum LearningMode
     {
@@ -33,14 +34,20 @@ public class IndexModel : PageModel
     public bool GameLost { get; set; } = false;
     private readonly IGameService _gameService;
     private readonly IGameStateService _gameStateService;
+    private readonly ILogger<IndexModel>? _logger;
+    private readonly MultiplicationGame.Services.GameSettings? _settings;
 
     [BindProperty]
     public LearningMode Mode { get; set; } = LearningMode.Normal;
 
-    public IndexModel(IGameService gameService, IGameStateService gameStateService)
+    public IndexModel(IGameService gameService, IGameStateService gameStateService, ILogger<IndexModel>? logger = null, Microsoft.Extensions.Options.IOptions<MultiplicationGame.Services.GameSettings>? options = null)
     {
         _gameService = gameService;
         _gameStateService = gameStateService;
+        _logger = logger;
+        _settings = options?.Value;
+        if (_settings is not null && _settings.RequiredCorrectAnswers > 0)
+            _requiredCorrectAnswers = _settings.RequiredCorrectAnswers;
     }
 
     [BindProperty]
@@ -60,12 +67,14 @@ public class IndexModel : PageModel
     public int CorrectAnswer { get; set; }
     [BindProperty]
     public int AttemptsLeft { get; set; } = 3;
+    [BindProperty]
+    public int TotalAnswers { get; set; } = 0; // Licznik wszystkich przesłanych odpowiedzi (poprawnych i błędnych)
 
     // Właściwości z logiką biznesową
-    public bool IsGameWon => Streak >= REQUIRED_CORRECT_ANSWERS;
-    public bool ShouldContinueGame => Streak < REQUIRED_CORRECT_ANSWERS;
-    public int Progress => Math.Min(Streak, REQUIRED_CORRECT_ANSWERS);
-    public static int RequiredAnswers => REQUIRED_CORRECT_ANSWERS;
+    public bool IsGameWon => Streak >= _requiredCorrectAnswers;
+    public bool ShouldContinueGame => Streak < _requiredCorrectAnswers;
+    public int Progress => Math.Min(Streak, _requiredCorrectAnswers);
+    public int RequiredAnswers => _requiredCorrectAnswers;
 
     public void OnGet()
     {
@@ -93,12 +102,13 @@ public class IndexModel : PageModel
                 if (question != null)
                 {
                     ApplyQuestion(question);
+                    _logger?.LogDebug("[OnGet] Initial question loaded: {A}×{B} (Level={Level})", question.A, question.B, question.Level);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // If question retrieval fails, leave Question null so fragment
-                // fallback (progress panel) will render; avoid breaking page.
+                _logger?.LogError(ex, "[OnGet] Failed to load initial question for level {Level}", Level);
+                // fallback: leave Question null
             }
         }
 
@@ -135,10 +145,12 @@ public class IndexModel : PageModel
                 LearningStep = 0; // Reset przy nowym pytaniu lub sprawdzeniu
             }
         }
-        RestoreHistoryFromRaw();
+    RestoreHistoryFromRaw();
+    _logger?.LogDebug("[OnPost] Restored history: Count={Count}", History.Count);
 
         if (ShouldStartNewGame())
         {
+            _logger?.LogInformation("[OnPost] Starting new game (NextQuestion={NextQuestion}, AttemptsLeft={AttemptsLeft}, PrevIsCorrect={IsCorrect}, AnswerChecked={AnswerChecked})", NextQuestion, AttemptsLeft, IsCorrect, AnswerChecked);
             StartNewGame();
             return;
         }
@@ -153,7 +165,11 @@ public class IndexModel : PageModel
     }
 
     private bool ShouldStartNewGame() =>
-        A == 0 && B == 0 || (AttemptsLeft == 0 && NextQuestion) || (NextQuestion && IsCorrect);
+        // Start new game ONLY when previous answer cycle is complete (AnswerChecked)
+        // This prevents skipping processing of a newly submitted answer if NextQuestion is still true.
+        (A == 0 && B == 0) ||
+        (AnswerChecked && AttemptsLeft == 0 && NextQuestion) ||
+        (AnswerChecked && NextQuestion && IsCorrect);
 
     private void StartNewGame()
     {
@@ -161,6 +177,7 @@ public class IndexModel : PageModel
         var question = _gameService.GetQuestion(Level, SolvedQuestions);
         ApplyQuestion(question);
         ResetQuestionState();
+        _logger?.LogInformation("[StartNewGame] New question: {A}×{B} Level={Level}", A, B, Level);
     }
 
     private void ResetGameState()
@@ -179,6 +196,7 @@ public class IndexModel : PageModel
         Level = question.Level;
         A = question.A;
         B = question.B;
+        _logger?.LogDebug("[ApplyQuestion] Applied question {A}×{B} (Level={Level})", A, B, Level);
     }
 
     private void ResetQuestionState()
@@ -192,6 +210,8 @@ public class IndexModel : PageModel
     {
         var result = _gameService.CheckAnswer(UserAnswer, A, B);
         ApplyAnswerResult(result);
+        _logger?.LogInformation("[ProcessAnswer] User={UserAnswer} Correct={CorrectAnswer} IsCorrect={IsCorrect} Streak={Streak} AttemptsLeft={AttemptsLeft}", UserAnswer, CorrectAnswer, IsCorrect, Streak, AttemptsLeft);
+        TotalAnswers++;
 
         if (IsCorrect)
         {
@@ -205,6 +225,17 @@ public class IndexModel : PageModel
         if (IsGameWon)
         {
             GameWon = true;
+        }
+
+        // Podsumowanie po obsłudze odpowiedzi
+        var solvedCount = SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+        if (History.Count != TotalAnswers)
+        {
+            _logger?.LogWarning("[ProcessAnswer-End] History.Count={HistoryCount} != TotalAnswers={TotalAnswers}. SolvedCount={SolvedCount} IsCorrect={IsCorrect}", History.Count, TotalAnswers, solvedCount, IsCorrect);
+        }
+        else
+        {
+            _logger?.LogDebug("[ProcessAnswer-End] Counts aligned: History={HistoryCount} TotalAnswers={TotalAnswers} Solved={SolvedCount}", History.Count, TotalAnswers, solvedCount);
         }
     }
 
@@ -224,6 +255,8 @@ public class IndexModel : PageModel
         if (Mode == LearningMode.Learning)
             Mode = LearningMode.Learning;
 
+        _logger?.LogInformation("[HandleCorrectAnswer] Streak={Streak} HistoryCount={HistoryCount} Solved={SolvedCount}", Streak, History.Count, SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
+
         if (ShouldContinueGame)
         {
             LoadNextQuestion();
@@ -231,6 +264,7 @@ public class IndexModel : PageModel
         else
         {
             GameWon = true;
+            _logger?.LogInformation("[HandleCorrectAnswer] Game won! Total history entries={HistoryCount}", History.Count);
         }
     }
 
@@ -244,6 +278,19 @@ public class IndexModel : PageModel
         var entry = _gameStateService.CreateHistoryEntry(A, B, CorrectAnswer, UserAnswer);
         History = History.Add(entry);
         HistoryRaw = _gameStateService.SerializeHistory(History);
+        if (History.Count > 0)
+        {
+            _logger?.LogDebug("[AddToHistory] Entry added: {Entry}. NewCount={Count}", entry, History.Count);
+        }
+        // Validation: if streak + failures != history count, log warning
+        var solvedCount = SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+        if (History.Count < solvedCount)
+        {
+            _logger?.LogWarning("[AddToHistory] History count ({HistoryCount}) < solved questions count ({SolvedCount}). Possible missing entry.", History.Count, solvedCount);
+        }
+        // Re-parse correctness list so GameWon/GameLost views show latest entry
+        HistoryWithCorrectness = _gameStateService.ParseHistoryWithCorrectness(HistoryRaw);
+        _logger?.LogDebug("[AddToHistory] HistoryWithCorrectness refreshed. Count={CorrectnessCount}", HistoryWithCorrectness.Count);
     }
 
     private void LoadNextQuestion()
@@ -255,18 +302,21 @@ public class IndexModel : PageModel
         // Zachowaj tryb nauki
         if (Mode == LearningMode.Learning)
             Mode = LearningMode.Learning;
+        _logger?.LogDebug("[LoadNextQuestion] Next question loaded: {A}×{B} Level={Level}", A, B, Level);
     }
 
     private void HandleIncorrectAnswer()
     {
         AttemptsLeft--;
         AddToHistory();
+        _logger?.LogInformation("[HandleIncorrectAnswer] AttemptsLeft={AttemptsLeft} HistoryCount={HistoryCount}", AttemptsLeft, History.Count);
 
         if (AttemptsLeft <= 0)
         {
             Streak = 0;  // Reset postępu tylko po utracie wszystkich żyć
             SolvedQuestions = "";
             GameLost = true;
+            _logger?.LogWarning("[HandleIncorrectAnswer] Game lost. HistoryCount={HistoryCount}", History.Count);
             return;
         }
 

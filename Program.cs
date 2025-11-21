@@ -18,6 +18,9 @@ builder.Services.AddScoped<IGameStateService, GameStateService>();
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Application starting in {Environment} environment", app.Environment.EnvironmentName);
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -28,13 +31,19 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+// Serve static files directly from wwwroot
+app.UseStaticFiles();
+
 app.UseRouting();
 
 app.UseAuthorization();
 
-
-app.MapStaticAssets();
 app.MapControllers();
-app.MapRazorPages().WithStaticAssets();
+app.MapRazorPages();
+
+logger.LogInformation("Application configured and ready to accept requests");
 
 await app.RunAsync();
+
+// Expose Program for WebApplicationFactory in integration tests
+public partial class Program { }

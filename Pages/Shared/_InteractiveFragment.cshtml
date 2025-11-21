@@ -6,7 +6,7 @@
 {
     <div class="d-flex flex-column align-items-center mt-5">
         <div class="alert alert-success display-5 fw-bold px-5 py-4 text-center" role="alert">
-            Gratulacje! Ukończyłeś grę – @MultiplicationGame.Pages.IndexModel.RequiredAnswers poprawnych odpowiedzi z rzędu!
+            Gratulacje! Ukończyłeś grę – @Model.RequiredAnswers poprawnych odpowiedzi z rzędu!
         </div>
         <div class="card shadow-sm mb-3" style="max-width: 420px;">
             <div class="card-body">
@@ -78,7 +78,8 @@ else if (Model.Question != null)
         <input type="hidden" name="B" value="@Model.Question?.B" />
         <input type="hidden" name="Streak" value="@Model.Streak" />
         <input type="hidden" name="SolvedQuestions" value="@Model.SolvedQuestions" />
-        <input type="hidden" name="AttemptsLeft" value="@Model.AttemptsLeft" />
+    <input type="hidden" name="AttemptsLeft" value="@Model.AttemptsLeft" />
+    <input type="hidden" name="TotalAnswers" value="@Model.TotalAnswers" />
         <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
         <input type="hidden" name="HistoryRaw" value="@Model.HistoryRaw" />
         <div class="d-flex justify-content-center align-items-center gap-3 my-4 flex-wrap">
@@ -172,7 +173,7 @@ else if (Model.Question != null)
                             Twoja odpowiedź: <b>@Model.UserAnswer</b>
                         </div>
                         <div class="mb-2">
-                            Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/@MultiplicationGame.Pages.IndexModel.RequiredAnswers
+                            Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/@Model.RequiredAnswers
                         </div>
                         <div class="mb-2">
                             Pozostało prób: <b>@Model.AttemptsLeft</b>/3
@@ -199,7 +200,7 @@ else if (Model.Question != null)
         @if (Model.GameWon)
         {
             <div class="mt-3">
-                <h2 class="text-success">Wygrałeś! @MultiplicationGame.Pages.IndexModel.RequiredAnswers poprawnych odpowiedzi z rzędu!</h2>
+                <h2 class="text-success">Wygrałeś! @Model.RequiredAnswers poprawnych odpowiedzi z rzędu!</h2>
                 <form method="post">
                     <input type="hidden" name="Level" value="@Model.Level" />
                     <input type="hidden" name="Streak" value="0" />
@@ -230,7 +231,7 @@ else if (Model.Question != null)
     </style>
     <h5 class="text-center mb-3">Postęp</h5>
     <div class="progress-grid">
-        @for (int i = 1; i <= MultiplicationGame.Pages.IndexModel.RequiredAnswers; i++)
+        @for (int i = 1; i <= Model.RequiredAnswers; i++)
         {
             var isCompleted = i <= Model.Streak;
             var isCurrent = i == Model.Streak + 1 && !Model.IsGameWon;
@@ -240,7 +241,7 @@ else if (Model.Question != null)
         }
     </div>
     <div class="text-center mt-3">
-        <small class="text-muted">@Model.Streak/@MultiplicationGame.Pages.IndexModel.RequiredAnswers ukończone</small>
+    <small class="text-muted">@Model.Streak/@Model.RequiredAnswers ukończone</small>
     </div>
 </div>
 
