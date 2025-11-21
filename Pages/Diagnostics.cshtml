@@ -1,0 +1,47 @@
+@page
+@model MultiplicationGame.Pages.DiagnosticsModel
+@{
+    ViewData["Title"] = "Diagnostyka";
+}
+<div class="container mt-4">
+    <h1 class="mb-4">Diagnostyka</h1>
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Ustawienia gry (GameSettings)</div>
+                <div class="card-body">
+                    @if (Model.Settings is null)
+                    {
+                        <div class="alert alert-warning">Brak sekcji <code>GameSettings</code> w konfiguracji.</div>
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item">Levels: <code>@string.Join(", ", Model.Settings.Levels ?? System.Array.Empty<int>())</code></li>
+                            <li class="list-group-item">DefaultMaxMultiplier: <code>@Model.Settings.DefaultMaxMultiplier</code></li>
+                            <li class="list-group-item">LowProbabilityFactors: <code>@string.Join(", ", Model.Settings.LowProbabilityFactors ?? System.Array.Empty<int>())</code></li>
+                            <li class="list-group-item">LowFactorChancePercent: <code>@Model.Settings.LowFactorChancePercent%</code></li>
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-semibold">Środowisko</div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item">ASPNETCORE_ENVIRONMENT: <code>@Model.EnvironmentName</code></li>
+                        <li class="list-group-item">ContentRoot: <code>@Model.ContentRoot</code></li>
+                        <li class="list-group-item">Time (UTC): <code>@DateTime.UtcNow:O</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mt-4">
+        <form method="post">
+            <button class="btn btn-outline-secondary" name="Refresh" value="true">Odśwież</button>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+name: .NET Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore MultiplicationGame.sln
+
+      - name: Build
+        run: dotnet build MultiplicationGame.sln --no-restore --configuration Debug
+
+      - name: Run tests
+        run: dotnet test MultiplicationGame.sln --no-build --configuration Debug --logger "trx;LogFileName=test_results.trx"

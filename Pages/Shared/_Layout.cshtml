@@ -27,6 +27,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Privacy">Privacy</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Diagnostics">Diagnostyka</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -47,9 +50,23 @@
     </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-" crossorigin="anonymous"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+                                            @{
+                                                // Determine the current Razor Page (e.g. "/Index", "/Privacy") and apply 'active' class to matching nav links
+                                                var current = (string?)ViewContext.RouteData.Values["page"] ?? "/Index";
+                                                string ActiveIf(string page) => string.Equals(current, page, System.StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+                                            }
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark @ActiveIf("/Index")" asp-area="" asp-page="/Index">Home</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark @ActiveIf("/Privacy")" asp-area="" asp-page="/Privacy">Privacy</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark @ActiveIf("/Diagnostics")" asp-area="" asp-page="/Diagnostics">Diagnostyka</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark @ActiveIf("/MultiplyDivide")" asp-area="" asp-page="/MultiplyDivide">Mnożenie / Dzielenie</a>
+                                            </li>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

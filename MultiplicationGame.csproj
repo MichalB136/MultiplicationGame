@@ -10,4 +10,14 @@
     <StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
   </PropertyGroup>
 
+  <!-- Exclude test/source-of-other-projects folders from the main project compile globbing -->
+  <ItemGroup>
+    <!-- Tests live in a sibling/test folder; exclude them so the web project doesn't try to compile test files. -->
+    <Compile Remove="tests\**\*.cs" />
+    <None Remove="tests\**\*.*" />
+    <!-- Exclude tools build artifacts if present under tools/ -->
+    <Compile Remove="tools\**\*.cs" />
+    <None Remove="tools\**\*.*" />
+  </ItemGroup>
+
 </Project>
