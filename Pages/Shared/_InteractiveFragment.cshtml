@@ -4,9 +4,15 @@
 
 @if (Model.GameWon)
 {
+    var minutes = Model.GameElapsedSeconds / 60;
+    var seconds = Model.GameElapsedSeconds % 60;
+    var timeText = minutes > 0 ? $"{minutes} min {seconds} sek" : $"{seconds} sek";
     <div class="d-flex flex-column align-items-center mt-5">
         <div class="alert alert-success display-5 fw-bold px-5 py-4 text-center" role="alert">
             Gratulacje! Ukończyłeś grę – @Model.RequiredAnswers poprawnych odpowiedzi z rzędu!
+        </div>
+        <div class="alert alert-info fs-4 fw-bold" role="alert">
+            ⏱️ Twój czas: @timeText
         </div>
         <div class="card shadow-sm mb-3" style="max-width: 420px;">
             <div class="card-body">
@@ -25,16 +31,23 @@
             <input type="hidden" name="Level" value="@Model.Level" />
             <input type="hidden" name="SolvedQuestions" value="" />
             <input type="hidden" name="Streak" value="0" />
-            <input type="hidden" name="AttemptsLeft" value="3" />
-            <button type="submit" class="btn btn-success btn-lg mt-3">Zagraj ponownie</button>
+            <input type="hidden" name="AttemptsLeft" value="@Model.InitialAttempts" />
+            <input type="hidden" name="GameStartTime" value="0" />
+            <button type="submit" class="btn btn-danger btn-lg mt-3">Spróbuj ponownie</button>
         </form>
     </div>
 }
 else if (Model.GameLost)
 {
+    var minutes = Model.GameElapsedSeconds / 60;
+    var seconds = Model.GameElapsedSeconds % 60;
+    var timeText = minutes > 0 ? $"{minutes} min {seconds} sek" : $"{seconds} sek";
     <div class="d-flex flex-column align-items-center mt-5">
         <div class="alert alert-danger display-5 fw-bold px-5 py-4 text-center" role="alert">
             Przegrałeś! Skończyły się wszystkie życia.
+        </div>
+        <div class="alert alert-info fs-4 fw-bold" role="alert">
+            ⏱️ Czas gry: @timeText
         </div>
         <div class="card shadow-sm mb-3" style="max-width: 420px;">
             <div class="card-body">
@@ -55,22 +68,25 @@ else if (Model.GameLost)
             <input type="hidden" name="Streak" value="0" />
             <input type="hidden" name="AttemptsLeft" value="3" />
             <input type="hidden" name="GameLost" value="false" />
+            <input type="hidden" name="GameStartTime" value="0" />
             <button type="submit" class="btn btn-danger btn-lg mt-3">Spróbuj ponownie</button>
         </form>
     </div>
 }
 else if (Model.Question != null)
 {
+    @if (Model.InitialAttempts > 0)
+    {
     <div class="mb-2">
         <div class="d-flex justify-content-center align-items-center gap-1">
-            @for (int i = 1; i <= 3; i++)
+            @for (int i = 1; i <= Model.AttemptsLeft; i++)
             {
-                var heartClass = i <= Model.AttemptsLeft ? "heart-full" : "heart-empty";
-                <span class="heart-indicator @heartClass" title="Życie @(i)">❤️</span>
+                <span class="heart-indicator heart-full" title="Życie @(i)">❤️</span>
             }
         </div>
         <div class="small text-muted">Pozostałe życia</div>
     </div>
+    }
     <form method="post" class="question-form">
         <input type="hidden" name="Mode" value="@Model.Mode" />
         <input type="hidden" name="Level" value="@Model.Level" />
@@ -80,16 +96,18 @@ else if (Model.Question != null)
         <input type="hidden" name="SolvedQuestions" value="@Model.SolvedQuestions" />
     <input type="hidden" name="AttemptsLeft" value="@Model.AttemptsLeft" />
     <input type="hidden" name="TotalAnswers" value="@Model.TotalAnswers" />
+    <input type="hidden" name="PerfectStreak" value="@Model.PerfectStreak" />
+    <input type="hidden" name="GameStartTime" value="@Model.GameStartTime" />
         <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
-        <input type="hidden" name="HistoryRaw" value="@Model.HistoryRaw" />
-        <div class="d-flex justify-content-center align-items-center gap-3 my-4 flex-wrap">
-            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.A</div>
+        <input type="hidden" name="HistoryRaw" value="@(Model.HistoryRaw ?? "")" />
+        <div class="d-flex justify-content-center align-items-center gap-2 my-2 flex-wrap">
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:80px;height:80px;">@Model.Question?.A</div>
             <div class="display-3 fw-bold">x</div>
-            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:100px;height:100px;">@Model.Question?.B</div>
+            <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:80px;height:80px;">@Model.Question?.B</div>
             <div class="display-3 fw-bold">=</div>
-                <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:140px;height:100px;">
+                <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:110px;height:80px;">
                     <div class="operand-input" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:0.25rem;">
-                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control form-control-lg text-center answer-input" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
+                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control text-center answer-input" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
                     </div>
                 </div>
         </div>
@@ -159,39 +177,48 @@ else if (Model.Question != null)
         }
         @if (Model.AnswerChecked)
         {
-            <div class="mt-2 mb-3 d-flex flex-column align-items-center">
-                <div class="card shadow-sm border-0 mb-2" style="max-width: 420px;">
-                    <div class="card-body text-center p-3">
-                        <div class="fs-3 mb-2">
+            <div class="mt-1 mb-2 d-flex flex-column align-items-center">
+                <div class="card shadow-sm border-0 mb-1" style="max-width: 420px;">
+                    <div class="card-body text-center p-2">
+                        <div class="fs-5 mb-1">
                             <b>@Model.A</b> <span class="mx-1">×</span> <b>@Model.B</b>
                             @if (Model.IsCorrect || Model.AttemptsLeft == 0)
                             {
                                 <span class="mx-1">=</span> <b>@Model.CorrectAnswer</b>
                             }
                         </div>
-                        <div class="mb-2">
+                        <div class="mb-1 small">
                             Twoja odpowiedź: <b>@Model.UserAnswer</b>
                         </div>
-                        <div class="mb-2">
+                        <div class="mb-1 small">
                             Poprawnych odpowiedzi z rzędu: <b>@Model.Streak</b>/@Model.RequiredAnswers
                         </div>
-                        <div class="mb-2">
-                            Pozostało prób: <b>@Model.AttemptsLeft</b>/3
+                        @if (Model.InitialAttempts > 0)
+                        {
+                        <div class="mb-1 small">
+                            Pozostało prób: <b>@Model.AttemptsLeft</b>
                         </div>
+                        }
                         @if (Model.IsCorrect)
                         {
-                            <div class="alert alert-success fw-bold fs-5 mb-2" role="alert">Poprawna odpowiedź! Sukces!</div>
+                            <div class="alert alert-success fw-bold mb-1 py-1" role="alert">Poprawna odpowiedź!</div>
+                            @if (Model.BonusAwarded)
+                            {
+                                <div class="alert alert-warning fw-bold mb-1 py-1" role="alert">
+                                    🎉 Bonus! +1 szansa! 🎉
+                                </div>
+                            }
                         }
-                        else if (Model.AttemptsLeft == 0)
+                        else if (Model.InitialAttempts > 0 && Model.AttemptsLeft == 0)
                         {
-                            <div class="d-flex align-items-center justify-content-center gap-3">
-                                <div class="alert alert-danger fw-bold fs-5 mb-2 mb-0" role="alert" style="min-width:260px;">3 błędne próby. Poprawny wynik: <b>@Model.CorrectAnswer</b></div>
-                                <button type="submit" class="btn btn-danger btn-lg" style="white-space:nowrap;" onclick="document.getElementById('NextQuestionField').value='true';">Spróbuj ponownie</button>
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="alert alert-danger fw-bold mb-1 py-1 mb-0" role="alert" style="min-width:200px;">@Model.InitialAttempts błędne próby. Wynik: <b>@Model.CorrectAnswer</b></div>
+                                <button type="submit" class="btn btn-danger" style="white-space:nowrap;" onclick="document.getElementById('NextQuestionField').value='true';">Spróbuj ponownie</button>
                             </div>
                         }
                         else
                         {
-                            <div class="alert alert-danger fw-bold fs-5 mb-2" role="alert">Błędna odpowiedź.</div>
+                            <div class="alert alert-danger fw-bold mb-1 py-1" role="alert">Błędna odpowiedź.</div>
                         }
                     </div>
                 </div>
@@ -210,13 +237,13 @@ else if (Model.Question != null)
         }
         @if (Model.AnswerChecked && Model.AttemptsLeft > 0)
         {
-            <button type="submit" class="btn btn-lg mt-2 @(Model.IsCorrect ? "btn-success" : "btn-warning")" onclick="document.getElementById('NextQuestionField').value='true';">
+            <button type="submit" class="btn mt-1 @(Model.IsCorrect ? "btn-success" : "btn-warning")" onclick="document.getElementById('NextQuestionField').value='true';">
                 @(Model.IsCorrect ? "Następne pytanie" : "Spróbuj ponownie")
             </button>
         }
         else
         {
-            <button type="submit" class="btn btn-primary btn-lg mt-2" onclick="document.getElementById('NextQuestionField').value='false';">Sprawdź</button>
+            <button type="submit" class="btn btn-primary mt-1" onclick="document.getElementById('NextQuestionField').value='false';">Sprawdź</button>
         }
     </form>
 }
@@ -224,12 +251,12 @@ else if (Model.Question != null)
 <div class="progress-panel">
     <style>
         /* Inline fallback styles to ensure progress grid renders when external CSS is not yet applied */
-        .progress-panel .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(44px, 1fr)); gap: 8px; justify-items: center; align-items: center; width:100%; }
-        .progress-panel .progress-square { width:44px; height:44px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-weight:700; color:#6c757d; background:#f8f9fa; border:2px solid #ddd; }
+        .progress-panel .progress-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(36px, 1fr)); gap: 6px; justify-items: center; align-items: center; width:100%; }
+        .progress-panel .progress-square { width:36px; height:36px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; color:#6c757d; background:#f8f9fa; border:2px solid #ddd; }
         .progress-panel .progress-square.completed { background: linear-gradient(135deg,#28a745,#20c997); color:#fff; border-color:#28a745; }
         .progress-panel .progress-square.current { background: linear-gradient(135deg,#ffc107,#fd7e14); color:#fff; border-color:#ffc107; }
     </style>
-    <h5 class="text-center mb-3">Postęp</h5>
+    <h6 class="text-center mb-2">Postęp</h6>
     <div class="progress-grid">
         @for (int i = 1; i <= Model.RequiredAnswers; i++)
         {
@@ -240,9 +267,26 @@ else if (Model.Question != null)
             </div>
         }
     </div>
-    <div class="text-center mt-3">
+    <div class="text-center mt-2">
     <small class="text-muted">@Model.Streak/@Model.RequiredAnswers ukończone</small>
     </div>
+    @if (Model.InitialAttempts > 0 && Model.BonusAttemptsThreshold > 0)
+    {
+        var progressPercentage = Model.BonusAttemptsThreshold > 0 ? (Model.PerfectStreak * 100.0 / Model.BonusAttemptsThreshold) : 0;
+        <div class="mt-2 p-2 bg-light rounded border">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="text-muted fw-bold">🔥 Bonus:</small>
+                <small class="text-muted"><strong>@Model.PerfectStreak</strong>/@Model.BonusAttemptsThreshold</small>
+            </div>
+            <div class="progress" style="height: 18px; background-color: #e9ecef;">
+                <div class="progress-bar bg-warning" role="progressbar" 
+                     style="width: @(progressPercentage.ToString("F2", System.Globalization.CultureInfo.InvariantCulture))% !important;" 
+                     aria-valuenow="@Model.PerfectStreak" aria-valuemin="0" aria-valuemax="@Model.BonusAttemptsThreshold">
+                </div>
+            </div>
+            <small class="text-muted mt-1 d-block text-center" style="font-size:0.75rem;">@Model.BonusAttemptsThreshold poprawnych = +1 ❤️</small>
+        </div>
+    }
 </div>
 
 <script>

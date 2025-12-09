@@ -1,0 +1,493 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>R&#xF3;wnania - MultiplicationGame</title>
+    
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css?v=sKIQRfQriISuQ9l_44b1zHfQniGXJhGonVtB2LlSuIs" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" integrity="sha384-" crossorigin="anonymous" />
+    <link rel="stylesheet" href="/css/site.css?v=EAcCb7mzs86ib17VwaDcwS_9OAZGMhMWt6NUOXJBSac" />
+    <!-- <link rel="stylesheet" href="~/MultiplicationGame.styles.css" asp-append-version="true" /> -->
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="/">MultiplicationGame</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Privacy">Privacy</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Diagnostics">Diagnostyka</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Equations">Równania</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="page-center-wrapper">
+        <div class="page-center-inner container">
+            <main role="main" class="pb-3">
+                
+<h1>Równania</h1>
+
+<form method="post">
+    <div class="mb-3">
+        <label for="difficulty" class="form-label">Poziom trudności</label>
+        <select id="difficulty" name="Difficulty" class="form-select" onchange="this.form.submit()">
+            <option value="2" selected="selected">Klasa 2</option>
+            <option value="3">Klasa 3</option>
+        </select>
+        <input type="hidden" name="handler" value="Generate" />
+    </div>
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8BzrdC07qWNEoZO8NXSIAAp5gzDI0TZe2-cZRZcgESaZP6DcLUvIVZtgvu1XiaNJ3JP4WMTeKlwkq7YsvbnHGWnncWXTdJVD7qzIiTr4UTQqv5jtKkuMK36nV5jJDChJUppSRUAVHHm5ITgnnrz5AqA" /></form>
+
+<form method="post">
+    <input type="hidden" name="Difficulty" value="2" />
+    <input type="hidden" name="handler" value="Submit" />
+
+    <div class="row">
+        <div class="col-md-6">
+            <ol>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">2 &#xD7; 3 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 0" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[0].Text" value="2 &#xD7; 3" />
+                        <input type="hidden" name="Equations[0].Answer" value="6" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">13 - 1 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 1" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[1].Text" value="13 - 1" />
+                        <input type="hidden" name="Equations[1].Answer" value="12" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">6 - 6 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 2" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[2].Text" value="6 - 6" />
+                        <input type="hidden" name="Equations[2].Answer" value="0" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">50 - 38 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 3" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[3].Text" value="50 - 38" />
+                        <input type="hidden" name="Equations[3].Answer" value="12" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">4 &#xF7; 1 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 4" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[4].Text" value="4 &#xF7; 1" />
+                        <input type="hidden" name="Equations[4].Answer" value="4" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">43 - 42 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 5" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[5].Text" value="43 - 42" />
+                        <input type="hidden" name="Equations[5].Answer" value="1" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">48 &#x2B; 50 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 6" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[6].Text" value="48 &#x2B; 50" />
+                        <input type="hidden" name="Equations[6].Answer" value="98" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">1 &#xD7; 6 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 7" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[7].Text" value="1 &#xD7; 6" />
+                        <input type="hidden" name="Equations[7].Answer" value="6" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">43 - 39 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 8" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[8].Text" value="43 - 39" />
+                        <input type="hidden" name="Equations[8].Answer" value="4" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">1 &#xD7; 10 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 9" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[9].Text" value="1 &#xD7; 10" />
+                        <input type="hidden" name="Equations[9].Answer" value="10" />
+                    </li>
+            </ol>
+        </div>
+        <div class="col-md-6">
+            <ol start="11">
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">24 &#x2B; 40 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 10" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[10].Text" value="24 &#x2B; 40" />
+                        <input type="hidden" name="Equations[10].Answer" value="64" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">27 &#x2B; 4 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 11" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[11].Text" value="27 &#x2B; 4" />
+                        <input type="hidden" name="Equations[11].Answer" value="31" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">12 - 9 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 12" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[12].Text" value="12 - 9" />
+                        <input type="hidden" name="Equations[12].Answer" value="3" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">44 - 3 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 13" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[13].Text" value="44 - 3" />
+                        <input type="hidden" name="Equations[13].Answer" value="41" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">9 &#x2B; 19 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 14" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[14].Text" value="9 &#x2B; 19" />
+                        <input type="hidden" name="Equations[14].Answer" value="28" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">42 &#x2B; 46 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 15" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[15].Text" value="42 &#x2B; 46" />
+                        <input type="hidden" name="Equations[15].Answer" value="88" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">2 - 2 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 16" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[16].Text" value="2 - 2" />
+                        <input type="hidden" name="Equations[16].Answer" value="0" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">12 &#x2B; 8 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 17" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[17].Text" value="12 &#x2B; 8" />
+                        <input type="hidden" name="Equations[17].Answer" value="20" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">27 &#xF7; 3 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 18" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[18].Text" value="27 &#xF7; 3" />
+                        <input type="hidden" name="Equations[18].Answer" value="9" />
+                    </li>
+                    <li class="mb-3">
+                        <div class="card equation-card ">
+                            <div class="d-flex align-items-center w-100">
+                                <div class="equation-text operand-display display-3 flex-grow-1 me-3">49 - 43 =</div>
+                                <div class="d-flex flex-column align-items-end">
+                                    <input type="text" name="Answers" value="" class="form-control equation-input mb-1" style="min-width:120px" aria-label="Odpowiedź dla równania 19" />
+                                </div>
+                            </div>
+                        </div>
+                        <input type="hidden" name="Equations[19].Text" value="49 - 43" />
+                        <input type="hidden" name="Equations[19].Answer" value="6" />
+                    </li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-primary">Sprawdź odpowiedzi</button>
+        <a class="btn btn-secondary ms-2" href="?handler=Generate&Difficulty=2">Losuj ponownie</a>
+    </div>
+
+<input name="__RequestVerificationToken" type="hidden" value="CfDJ8BzrdC07qWNEoZO8NXSIAAp5gzDI0TZe2-cZRZcgESaZP6DcLUvIVZtgvu1XiaNJ3JP4WMTeKlwkq7YsvbnHGWnncWXTdJVD7qzIiTr4UTQqv5jtKkuMK36nV5jJDChJUppSRUAVHHm5ITgnnrz5AqA" /></form>
+
+<script>
+(function() {
+    // Wait for the submit form which contains handler=Submit
+    const submitHandlerInput = document.querySelector('input[name="handler"][value="Submit"]');
+    if (!submitHandlerInput) {
+        console.error('Submit handler input not found');
+        return;
+    }
+    const form = submitHandlerInput.closest('form');
+    if (!form) {
+        console.error('Form not found');
+        return;
+    }
+
+    const answerSelector = 'input[name="Answers"]';
+    const hiddenTextSelector = 'input[name*=".Text"]';
+
+    const answers = () => Array.from(form.querySelectorAll(answerSelector));
+    const hiddenTexts = () => Array.from(form.querySelectorAll(hiddenTextSelector));
+
+    function markEmpty() {
+        answers().forEach(i => i.classList.toggle('empty', !i.value || i.value.trim() === ''));
+    }
+
+    function setValidationMessage(input, msg) {
+        let el = input.nextElementSibling;
+        if (!el || !el.classList || !el.classList.contains('validation-msg')) {
+            el = document.createElement('div');
+            el.className = 'validation-msg text-danger small';
+            input.parentNode.appendChild(el);
+        }
+        el.textContent = msg || '';
+        el.style.display = msg ? 'block' : 'none';
+    }
+
+    function clearValidationMessage(input) { setValidationMessage(input, ''); }
+
+    function isIntegerString(s) {
+        if (!s) return false;
+        s = s.trim();
+        return /^[-+]?\d+$/.test(s);
+    }
+
+    function validateField(idx) {
+        const input = answers()[idx];
+        if (!input) return false;
+        
+        const raw = input.value ? input.value.trim() : '';
+        input.classList.remove('empty', 'invalid');
+        clearValidationMessage(input);
+
+        if (!raw) {
+            input.classList.add('empty');
+            setValidationMessage(input, 'Wprowadź odpowiedź');
+            return false;
+        }
+
+        const texts = hiddenTexts();
+        const text = (texts[idx] && texts[idx].value) || '';
+        const op = (text.includes('÷') || text.includes('/')) ? '/' : (text.includes('×') || text.includes('x') || text.includes('*')) ? '*' : (text.includes('+') ? '+' : '-');
+
+        const normalized = raw.replace(',', '.');
+        const num = Number(normalized);
+        if (Number.isNaN(num)) {
+            input.classList.add('invalid');
+            setValidationMessage(input, 'Nieprawidłowa liczba');
+            return false;
+        }
+
+        if (op === '+' || op === '-' || op === '*') {
+            if (!isIntegerString(raw.replace(',', '.'))) {
+                input.classList.add('invalid');
+                setValidationMessage(input, 'Wymagana liczba całkowita');
+                return false;
+            }
+        }
+
+        clearValidationMessage(input);
+        input.classList.remove('invalid');
+        return true;
+    }
+
+    function validateAll() {
+        markEmpty();
+        const list = answers();
+        let ok = true;
+        for (let i = 0; i < list.length; i++) {
+            if (!validateField(i)) ok = false;
+        }
+        return ok;
+    }
+
+    // intercept Enter on answer fields
+    form.addEventListener('keydown', function(e) {
+        const target = e.target;
+        if (!target || !target.matches) return;
+        if (e.key === 'Enter' && target.matches(answerSelector)) {
+            e.preventDefault();
+            
+            const allAnswers = answers();
+            const currentIdx = allAnswers.indexOf(target);
+            if (currentIdx >= 0) {
+                validateField(currentIdx);
+            }
+            
+            if (validateAll()) {
+                form.submit();
+                return;
+            }
+            
+            const nextEmpty = allAnswers.find((inp, idx) => idx > currentIdx && (!inp.value || inp.value.trim() === ''));
+            if (nextEmpty) {
+                nextEmpty.focus();
+            } else {
+                const firstProblem = form.querySelector(answerSelector + '.empty, ' + answerSelector + '.invalid');
+                if (firstProblem) firstProblem.focus();
+            }
+            return false;
+        }
+    });
+
+    // on form submit
+    form.addEventListener('submit', function(e) {
+        const isValid = validateAll();
+        if (!isValid) {
+            e.preventDefault();
+            const firstInvalid = form.querySelector(answerSelector + '.empty, ' + answerSelector + '.invalid');
+            if (firstInvalid) firstInvalid.focus();
+            return false;
+        }
+        return true;
+    });
+
+    // live input validation
+    form.addEventListener('input', function(e) {
+        const t = e.target;
+        if (t && t.matches && t.matches(answerSelector)) {
+            validateField(Array.from(answers()).indexOf(t));
+        }
+    });
+})();
+</script>
+
+            </main>
+        </div>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - MultiplicationGame - <a href="/Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark " href="/">Home</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark " href="/Privacy">Privacy</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark " href="/Diagnostics">Diagnostyka</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark active" href="/Equations">Równania</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark " href="">Mnożenie / Dzielenie</a>
+                                            </li>
+
+    
+</body>
+</html>
+

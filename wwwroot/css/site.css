@@ -53,7 +53,7 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 20px;
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -69,28 +69,29 @@ body {
 .progress-panel {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.06);
   border: 1px solid #e9f5ff;
-  max-width: 360px; /* keep grid compact so it doesn't stretch into a single column */
+  max-width: 320px; /* keep grid compact so it doesn't stretch into a single column */
 }
 .progress-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(44px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(36px, 1fr));
+  gap: 6px;
   justify-items: center;
   align-items: center;
   width: 100%;
 }
 .progress-square {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
   border: 2px solid #ddd;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  font-size: 0.85rem;
   color: #6c757d;
   background: #f8f9fa;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
@@ -128,6 +129,16 @@ body {
    `.display-3` typography globally. Apply `.operand-display` where needed. */
 .operand-display {
   box-sizing: border-box;
+  background: linear-gradient(180deg,#fff,#f7fbff);
+  border: 1px solid rgba(37,140,251,0.08);
+  padding: 8px 12px;
+  border-radius: 10px;
+  display: inline-block;
+  text-align: center;
+  min-width: 90px;
+  font-size: 2.5rem !important;
+  font-weight: 700;
+  line-height: 1;
 }
 
 /* Center dot animations and color grid inside the fragment */
@@ -145,8 +156,8 @@ body {
 
 /* Restrict input sizing for the answer input within the fragment only. */
 #interactiveFragment .question-form > .d-flex .operand-input input[name="UserAnswer"] {
-  width: 120px;
-  height: 80px;
+  width: 100px;
+  height: 70px;
   max-width: 100%;
 }
 
@@ -163,8 +174,8 @@ body {
 #interactiveFragment {
   display: flex;
   flex-direction: row;
-  gap: 24px;
-  align-items: center; /* center vertically for a balanced layout */
+  gap: 16px;
+  align-items: flex-start; /* center vertically for a balanced layout */
   justify-content: center;
   flex-wrap: wrap;
   width: 100%;
@@ -189,6 +200,13 @@ body {
   text-align: center;
 }
 
+/* Specific styling for answer input */
+.answer-input {
+  font-size: 2rem !important;
+  font-weight: 600 !important;
+  line-height: 1 !important;
+}
+
 /* Keep the progress panel compact and allow it to sit beside the question area. */
 #interactiveFragment .progress-panel {
   margin: 0 auto;
@@ -202,4 +220,78 @@ body {
     align-items: center;
   }
   #interactiveFragment .question-form { max-width: 100%; }
+}
+
+/* Equation card styling for Pages/Equations */
+.equation-card {
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+  border: 1px solid rgba(0,0,0,0.06);
+  background: linear-gradient(180deg, #ffffff, #fbfdff);
+}
+.equation-card .equation-text {
+  font-weight: 700;
+  font-size: 1.35rem;
+  display: inline-block;
+}
+.equation-input {
+  height: 54px;
+  font-size: 1.75rem;
+  text-align: center;
+  max-width: 140px;
+  border-radius: 8px;
+  line-height: 1.2;
+  padding: 8px;
+}
+
+/* Correct/incorrect animations */
+.equation-card {
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+.equation-card.correct {
+  animation: correct-pop 0.6s ease forwards;
+  border-color: rgba(40,167,69,0.85) !important;
+  border-width: 2px !important;
+  box-shadow: 0 10px 24px rgba(40, 167, 69, 0.25) !important;
+  background: linear-gradient(180deg,#e8f5e9,#f1f8f4) !important;
+}
+.equation-card.incorrect {
+  animation: shake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+  border-color: rgba(220,53,69,0.85) !important;
+  border-width: 2px !important;
+  box-shadow: 0 6px 18px rgba(220,53,69,0.2) !important;
+  background: linear-gradient(180deg,#ffebee,#fff5f5) !important;
+}
+
+@keyframes correct-pop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+  100% { transform: translateX(0); }
+}
+
+@media (max-width: 575.98px) {
+  .equation-card { padding: 10px; }
+  .equation-card .equation-text { font-size: 1.15rem; }
+  .equation-input { height: 48px; font-size: 1.5rem; }
+}
+
+/* highlight empty answer fields when user attempts submit */
+.equation-input.empty {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 0.18rem rgba(220,53,69,0.12);
+}
+
+.equation-input.invalid {
+  border-color: #c82333 !important;
+  box-shadow: 0 0 0 0.22rem rgba(200,40,50,0.12);
 }

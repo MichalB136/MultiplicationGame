@@ -17,12 +17,36 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '9.0.x'
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.local/share/NuGet
+            ~/.dotnet/tools
+          key: nuget-${{ runner.os }}-v1-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-v1-
 
       - name: Restore
         run: dotnet restore MultiplicationGame.sln
+
+      - name: Install dotnet-format
+        run: |
+          dotnet tool install -g dotnet-format --version 6.0.256901
+          echo "##vso[task.prependpath]$HOME/.dotnet/tools"
+
+      - name: Format check
+        run: dotnet format --verify-no-changes
 
       - name: Build
         run: dotnet build MultiplicationGame.sln --no-restore --configuration Debug
 
       - name: Run tests
         run: dotnet test MultiplicationGame.sln --no-build --configuration Debug --logger "trx;LogFileName=test_results.trx"
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test_results.trx'

@@ -17,4 +17,10 @@ public sealed class GameSettings
 
     // Number of correct answers in a row required to win the game
     public int RequiredCorrectAnswers { get; set; } = 10;
+
+    // Initial number of attempts at game start (0 = unlimited)
+    public int InitialAttempts { get; set; } = 3;
+
+    // Number of correct answers in a row (without losing a life) required to gain a bonus attempt
+    public int BonusAttemptsThreshold { get; set; } = 5;
 }

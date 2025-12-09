@@ -7,6 +7,9 @@ description: "This file provides guidelines for writing clean, maintainable, and
 - Software Architect
 - Code Quality Specialist
 
+## Applicaiton run:
+- Whenver using dotnet run make sure to use terminal outside of Visual Studio to avoid issues with implicit usings and file-scoped namespaces.
+
 ## General:
 
 **Description:**

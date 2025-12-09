@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running dotnet format (verify)..."
+
+# Ensure dotnet-format tool is available (install to user tools if missing)
+if ! command -v dotnet-format >/dev/null 2>&1; then
+  echo "dotnet-format not found. Installing global tool..."
+  dotnet tool install -g dotnet-format --version 6.0.256901 || true
+  export PATH="$HOME/.dotnet/tools:$PATH"
+fi
+
+if dotnet format --verify-no-changes; then
+  echo "Code is formatted."
+  exit 0
+else
+  echo "Code is not formatted. Run 'dotnet format' and commit the changes."
+  exit 1
+fi

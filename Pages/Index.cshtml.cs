@@ -69,12 +69,20 @@ public class IndexModel : PageModel
     public int AttemptsLeft { get; set; } = 3;
     [BindProperty]
     public int TotalAnswers { get; set; } = 0; // Licznik wszystkich przesłanych odpowiedzi (poprawnych i błędnych)
+    [BindProperty]
+    public int PerfectStreak { get; set; } = 0; // Licznik poprawnych odpowiedzi bez straty życia
+    public bool BonusAwarded { get; set; } = false; // Flaga informująca czy właśnie przyznano bonus
+    [BindProperty]
+    public long GameStartTime { get; set; } = 0; // Unix timestamp w milisekundach
+    public int GameElapsedSeconds { get; set; } = 0; // Czas gry w sekundach
 
     // Właściwości z logiką biznesową
     public bool IsGameWon => Streak >= _requiredCorrectAnswers;
     public bool ShouldContinueGame => Streak < _requiredCorrectAnswers;
     public int Progress => Math.Min(Streak, _requiredCorrectAnswers);
     public int RequiredAnswers => _requiredCorrectAnswers;
+    public int InitialAttempts => _settings?.InitialAttempts ?? 3;
+    public int BonusAttemptsThreshold => _settings?.BonusAttemptsThreshold ?? 5;
 
     public void OnGet()
     {
@@ -88,6 +96,12 @@ public class IndexModel : PageModel
         if (Request.Cookies.TryGetValue("mg_mode", out var cookieModeVal) && Enum.TryParse(cookieModeVal, out LearningMode cookieMode))
         {
             Mode = cookieMode;
+        }
+
+        // Zainicjalizuj timer przy pierwszym załadowaniu gry
+        if (GameStartTime == 0)
+        {
+            GameStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
         // Ensure a question is available for the initial page render so the
@@ -127,6 +141,13 @@ public class IndexModel : PageModel
         {
             Mode = cookieMode;
         }
+        
+        // Zainicjalizuj timer jeśli nie jest ustawiony (nowa gra lub reload)
+        if (GameStartTime == 0)
+        {
+            GameStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+        
         // Obsługa kroków nauki w trybie Learning
         if (Mode == LearningMode.Learning)
         {
@@ -160,6 +181,9 @@ public class IndexModel : PageModel
 
     private void RestoreHistoryFromRaw()
     {
+        // Ensure HistoryRaw and SolvedQuestions are not null (can happen if binding fails or form doesn't include them)
+        HistoryRaw ??= "";
+        SolvedQuestions ??= "";
         History = _gameStateService.ParseHistory(HistoryRaw);
         HistoryWithCorrectness = _gameStateService.ParseHistoryWithCorrectness(HistoryRaw);
     }
@@ -183,11 +207,14 @@ public class IndexModel : PageModel
     private void ResetGameState()
     {
         Streak = 0;
-        AttemptsLeft = 3;
+        PerfectStreak = 0;
+        AttemptsLeft = _settings?.InitialAttempts ?? 3;
         SolvedQuestions = "";
         History = ImmutableList<string>.Empty;
         HistoryRaw = "";
         GameLost = false;
+        GameStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        GameElapsedSeconds = 0;
     }
 
     private void ApplyQuestion(QuestionDto question)
@@ -208,6 +235,13 @@ public class IndexModel : PageModel
 
     private void ProcessAnswer()
     {
+        // Oblicz czas gry jeśli gra się rozpoczęła
+        if (GameStartTime > 0)
+        {
+            var elapsed = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - GameStartTime;
+            GameElapsedSeconds = (int)(elapsed / 1000);
+        }
+        
         var result = _gameService.CheckAnswer(UserAnswer, A, B);
         ApplyAnswerResult(result);
         _logger?.LogInformation("[ProcessAnswer] User={UserAnswer} Correct={CorrectAnswer} IsCorrect={IsCorrect} Streak={Streak} AttemptsLeft={AttemptsLeft}", UserAnswer, CorrectAnswer, IsCorrect, Streak, AttemptsLeft);
@@ -249,13 +283,28 @@ public class IndexModel : PageModel
     private void HandleCorrectAnswer()
     {
         Streak++;
+        PerfectStreak++;
         UpdateSolvedQuestions();
         AddToHistory();
+        
+        // Sprawdź czy gracz zasłużył na dodatkową szansę
+        var bonusThreshold = _settings?.BonusAttemptsThreshold ?? 5;
+        var initialAttempts = _settings?.InitialAttempts ?? 3;
+        
+        if (initialAttempts > 0 && bonusThreshold > 0 && PerfectStreak >= bonusThreshold)
+        {
+            // Przyznaj bonus - dodaj życie (bez ograniczenia do initialAttempts)
+            AttemptsLeft++;
+            BonusAwarded = true;
+            _logger?.LogInformation("[HandleCorrectAnswer] Bonus awarded! PerfectStreak={PerfectStreak}, AttemptsLeft increased to {AttemptsLeft}", PerfectStreak, AttemptsLeft);
+            PerfectStreak = 0; // Reset licznika po przyznaniu bonusu
+        }
+        
         // Zachowaj tryb nauki
         if (Mode == LearningMode.Learning)
             Mode = LearningMode.Learning;
 
-        _logger?.LogInformation("[HandleCorrectAnswer] Streak={Streak} HistoryCount={HistoryCount} Solved={SolvedCount}", Streak, History.Count, SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
+        _logger?.LogInformation("[HandleCorrectAnswer] Streak={Streak} PerfectStreak={PerfectStreak} HistoryCount={HistoryCount} Solved={SolvedCount}", Streak, PerfectStreak, History.Count, SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
 
         if (ShouldContinueGame)
         {
@@ -283,13 +332,14 @@ public class IndexModel : PageModel
             _logger?.LogDebug("[AddToHistory] Entry added: {Entry}. NewCount={Count}", entry, History.Count);
         }
         // Validation: if streak + failures != history count, log warning
-        var solvedCount = SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
+        var solvedCount = (SolvedQuestions ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).Length;
         if (History.Count < solvedCount)
         {
             _logger?.LogWarning("[AddToHistory] History count ({HistoryCount}) < solved questions count ({SolvedCount}). Possible missing entry.", History.Count, solvedCount);
         }
         // Re-parse correctness list so GameWon/GameLost views show latest entry
-        HistoryWithCorrectness = _gameStateService.ParseHistoryWithCorrectness(HistoryRaw);
+        // Ensure HistoryRaw is not null before parsing
+        HistoryWithCorrectness = _gameStateService.ParseHistoryWithCorrectness(HistoryRaw ?? "");
         _logger?.LogDebug("[AddToHistory] HistoryWithCorrectness refreshed. Count={CorrectnessCount}", HistoryWithCorrectness.Count);
     }
 
@@ -307,11 +357,22 @@ public class IndexModel : PageModel
 
     private void HandleIncorrectAnswer()
     {
-        AttemptsLeft--;
+        var initialAttempts = _settings?.InitialAttempts ?? 3;
+        
+        // Reset perfect streak when losing a life
+        PerfectStreak = 0;
+        
+        // Only decrement if there's a limit (InitialAttempts > 0)
+        if (initialAttempts > 0)
+        {
+            AttemptsLeft--;
+        }
+        
         AddToHistory();
         _logger?.LogInformation("[HandleIncorrectAnswer] AttemptsLeft={AttemptsLeft} HistoryCount={HistoryCount}", AttemptsLeft, History.Count);
 
-        if (AttemptsLeft <= 0)
+        // Game is lost only if there's a limit and attempts are exhausted
+        if (initialAttempts > 0 && AttemptsLeft <= 0)
         {
             Streak = 0;  // Reset postępu tylko po utracie wszystkich żyć
             SolvedQuestions = "";

@@ -4,18 +4,15 @@
     ViewData["Title"] = "Home page";
 }
 
-<div class="container">
+<div class="container" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">
     <div class="row justify-content-center">
         <!-- Centered main column -->
         <div class="col-lg-8 col-md-10">
             <div class="text-center">
-                
-                <h1 class="display-4">Gra: Tabliczka Mnożenia</h1>
-
-                <form method="post" class="mb-4">
-                    <div class="row mb-2">
-                        <div class="col-md-6 mb-2 mb-md-0">
-                            <div class="fw-semibold fs-5">Poziom trudności:</div>
+                <form method="post" class="mb-2">
+                    <div class="row mb-1">
+                        <div class="col-md-6 mb-1 mb-md-0">
+                            <div class="fw-semibold fs-6">Poziom trudności:</div>
                             <div class="d-flex justify-content-center gap-2 flex-wrap align-items-center">
                                 <input type="hidden" name="Mode" value="@Model.Mode" />
                                 <!-- Single fixed level: 100 -->
@@ -24,8 +21,8 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="fw-semibold fs-5">Tryb nauki:</div>
-                            <select id="modeSelect" class="form-select form-select-lg w-auto d-inline-block" style="min-width:180px;">
+                            <div class="fw-semibold fs-6">Tryb nauki:</div>
+                            <select id="modeSelect" class="form-select w-auto d-inline-block" style="min-width:180px;">
                                 <option value="Normal" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Normal ? "selected" : null)">Standardowy</option>
                                 <option value="Learning" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning ? "selected" : null)">Nauka (wyjaśnienia)</option>
                             </select>

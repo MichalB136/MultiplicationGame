@@ -30,6 +30,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-area="" asp-page="/Diagnostics">Diagnostyka</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Equations">Równania</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -63,6 +66,9 @@
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link text-dark @ActiveIf("/Diagnostics")" asp-area="" asp-page="/Diagnostics">Diagnostyka</a>
+                                            </li>
+                                            <li class="nav-item">
+                                                <a class="nav-link text-dark @ActiveIf("/Equations")" asp-area="" asp-page="/Equations">Równania</a>
                                             </li>
                                             <li class="nav-item">
                                                 <a class="nav-link text-dark @ActiveIf("/MultiplyDivide")" asp-area="" asp-page="/MultiplyDivide">Mnożenie / Dzielenie</a>
