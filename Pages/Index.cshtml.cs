@@ -10,16 +10,8 @@ namespace MultiplicationGame.Pages;
 
 public class IndexModel : PageModel
 {
-    [BindProperty]
-    public int LearningStep { get; set; } = 0;
-    public int Step => LearningStep;
+    // Learning mode removed: no learning steps
     private int _requiredCorrectAnswers = 10;
-
-    public enum LearningMode
-    {
-        Normal,
-        Learning
-    }
 
     [BindProperty]
     public string HistoryRaw { get; set; } = "";
@@ -37,8 +29,7 @@ public class IndexModel : PageModel
     private readonly ILogger<IndexModel>? _logger;
     private readonly MultiplicationGame.Services.GameSettings? _settings;
 
-    [BindProperty]
-    public LearningMode Mode { get; set; } = LearningMode.Normal;
+    // Learning mode removed
 
     public IndexModel(IGameService gameService, IGameStateService gameStateService, ILogger<IndexModel>? logger = null, Microsoft.Extensions.Options.IOptions<MultiplicationGame.Services.GameSettings>? options = null)
     {
@@ -86,17 +77,7 @@ public class IndexModel : PageModel
 
     public void OnGet()
     {
-        // Tryb można ustawić przez query string, domyślnie Normal
-        if (Request.Query.TryGetValue("mode", out var modeVal) && Enum.TryParse(modeVal, out LearningMode mode))
-        {
-            Mode = mode;
-        }
-
-        // Also allow mode to be persisted via cookie when changed client-side
-        if (Request.Cookies.TryGetValue("mg_mode", out var cookieModeVal) && Enum.TryParse(cookieModeVal, out LearningMode cookieMode))
-        {
-            Mode = cookieMode;
-        }
+        // Learning mode removed: ignore mode query/cookie
 
         // Zainicjalizuj timer przy pierwszym załadowaniu gry
         if (GameStartTime == 0)
@@ -136,11 +117,7 @@ public class IndexModel : PageModel
 
     public void OnPost()
     {
-        // If client used cookie-based mode toggling, prefer cookie value to avoid losing Level
-        if (Request.Cookies.TryGetValue("mg_mode", out var cookieModeValPost) && Enum.TryParse(cookieModeValPost, out LearningMode cookieMode))
-        {
-            Mode = cookieMode;
-        }
+        // Learning mode removed: no cookie-based mode
         
         // Zainicjalizuj timer jeśli nie jest ustawiony (nowa gra lub reload)
         if (GameStartTime == 0)
@@ -148,24 +125,7 @@ public class IndexModel : PageModel
             GameStartTime = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
         
-        // Obsługa kroków nauki w trybie Learning
-        if (Mode == LearningMode.Learning)
-        {
-            // Jeśli użytkownik kliknął "Następny krok" zamiast "Sprawdź"
-            if (Request.Form.ContainsKey("NextLearningStep"))
-            {
-                    LearningStep++;
-                    // Restore history so the UI continues showing previous attempts
-                    RestoreHistoryFromRaw();
-                    // Nie sprawdzamy odpowiedzi, tylko przechodzimy do kolejnego kroku
-                    Question = new QuestionDto(A, B, Level);
-                    return;
-            }
-            else
-            {
-                LearningStep = 0; // Reset przy nowym pytaniu lub sprawdzeniu
-            }
-        }
+        // Learning mode removed
     RestoreHistoryFromRaw();
     _logger?.LogDebug("[OnPost] Restored history: Count={Count}", History.Count);
 
@@ -301,8 +261,7 @@ public class IndexModel : PageModel
         }
         
         // Zachowaj tryb nauki
-        if (Mode == LearningMode.Learning)
-            Mode = LearningMode.Learning;
+        // Learning mode removed
 
         _logger?.LogInformation("[HandleCorrectAnswer] Streak={Streak} PerfectStreak={PerfectStreak} HistoryCount={HistoryCount} Solved={SolvedCount}", Streak, PerfectStreak, History.Count, SolvedQuestions.Split(';', StringSplitOptions.RemoveEmptyEntries).Length);
 
@@ -350,8 +309,7 @@ public class IndexModel : PageModel
         ResetQuestionState();
         UserAnswer = 0;
         // Zachowaj tryb nauki
-        if (Mode == LearningMode.Learning)
-            Mode = LearningMode.Learning;
+        // Learning mode removed
         _logger?.LogDebug("[LoadNextQuestion] Next question loaded: {A}×{B} Level={Level}", A, B, Level);
     }
 

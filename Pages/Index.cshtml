@@ -1,5 +1,5 @@
 ﻿@page
-@model IndexModel
+@model MultiplicationGame.Pages.IndexModel
 @{
     ViewData["Title"] = "Home page";
 }
@@ -11,21 +11,13 @@
             <div class="text-center">
                 <form method="post" class="mb-2">
                     <div class="row mb-1">
-                        <div class="col-md-6 mb-1 mb-md-0">
+                        <div class="col-12">
                             <div class="fw-semibold fs-6">Poziom trudności:</div>
                             <div class="d-flex justify-content-center gap-2 flex-wrap align-items-center">
-                                <input type="hidden" name="Mode" value="@Model.Mode" />
                                 <!-- Single fixed level: 100 -->
                                 <span class="badge bg-primary fs-6">Do 100</span>
                                 <input type="hidden" name="Level" value="100" />
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="fw-semibold fs-6">Tryb nauki:</div>
-                            <select id="modeSelect" class="form-select w-auto d-inline-block" style="min-width:180px;">
-                                <option value="Normal" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Normal ? "selected" : null)">Standardowy</option>
-                                <option value="Learning" selected="@(Model.Mode == MultiplicationGame.Pages.IndexModel.LearningMode.Learning ? "selected" : null)">Nauka (wyjaśnienia)</option>
-                            </select>
                         </div>
                     </div>
                 </form>
@@ -43,75 +35,5 @@
 </div>
 
 <script>
-    // Cookie helpers and AJAX mode/fragment logic (kept minimal here)
-    function setCookie(name, value, days) {
-        var expires = "";
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/";
-    }
-    function getCookie(name) {
-        var nameEQ = name + "=";
-        var ca = document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) === ' ') c = c.substring(1, c.length);
-            if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
-        }
-        return null;
-    }
-
-    var modeSelect = document.getElementById('modeSelect');
-    if (modeSelect) {
-        modeSelect.addEventListener('change', async function (e) {
-            var newMode = e.target.value;
-            try {
-                var resp = await fetch('/api/mode', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode: newMode })
-                });
-                if (!resp.ok) { var failUrl = new URL(window.location.href); failUrl.searchParams.set('mode', newMode); window.location.href = failUrl.toString(); return; }
-                try { setCookie('mg_mode', newMode, 30); } catch {}
-                var fragResp = await fetch('/api/fragment?mode=' + encodeURIComponent(newMode), { credentials: 'same-origin' });
-                if (fragResp.ok) {
-                    var html = await fragResp.text();
-                    var container = document.getElementById('interactiveFragment');
-                    if (container) { container.innerHTML = html; try { if (typeof initInteractiveFragment === 'function') initInteractiveFragment(); } catch (ex) { console.warn(ex); } }
-                    else { window.location.reload(); }
-                } else { window.location.reload(); }
-            } catch (ex) { var url = new URL(window.location.href); url.searchParams.set('mode', newMode); window.location.href = url.toString(); }
-        });
-    }
-
-    // Initialize behaviors after fragment replacement
-    async function initInteractiveFragment() {
-        var marker = document.getElementById('learningAutoAdvance');
-        if (marker) {
-            try {
-                var step = parseInt(marker.getAttribute('data-step')) || 0;
-                var total = parseInt(marker.getAttribute('data-total')) || 0;
-                if (step < total - 1) {
-                    setTimeout(function() {
-                        var form = document.createElement('form'); form.method = 'post'; form.style.display = 'none';
-                        var names = ['A','B','Level','Mode','LearningStep','Streak','SolvedQuestions','AttemptsLeft','HistoryRaw'];
-                        var values = [marker.getAttribute('data-a'), marker.getAttribute('data-b'), marker.getAttribute('data-level'), marker.getAttribute('data-mode'), (step+1).toString(), marker.getAttribute('data-streak'), marker.getAttribute('data-solved'), marker.getAttribute('data-attempts'), marker.getAttribute('data-history')];
-                        for (var i=0;i<names.length;i++) { var input = document.createElement('input'); input.type='hidden'; input.name=names[i]; input.value=values[i]||''; form.appendChild(input); }
-                        var nextStep = document.createElement('input'); nextStep.type='hidden'; nextStep.name='NextLearningStep'; nextStep.value='true'; form.appendChild(nextStep);
-                        // Copy antiforgery token from the fragment if present so the auto-post passes validation
-                        try {
-                            var existingToken = document.querySelector('input[name="__RequestVerificationToken"]');
-                            if (existingToken && existingToken.value) {
-                                var af = document.createElement('input'); af.type='hidden'; af.name='__RequestVerificationToken'; af.value = existingToken.value; form.appendChild(af);
-                            }
-                        } catch (e) { console && console.warn && console.warn('copy antiforgery token failed', e); }
-                        document.body.appendChild(form); form.submit();
-                    }, 900);
-                }
-            } catch (e) { console.warn('learning auto-advance init failed', e); }
-        }
-    }
-    document.addEventListener('DOMContentLoaded', function() { initInteractiveFragment(); });
-
+    // No learning mode - script block kept for future enhancements.
 </script>
