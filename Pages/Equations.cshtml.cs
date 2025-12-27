@@ -74,10 +74,27 @@ public class EquationsModel : PageModel
         // Compute correct answer for current question
         CorrectAnswer = Compute(A, B, Operator);
 
-        // Evaluate user's answer
+        // CRITICAL: Handle empty input explicitly to prevent submission with blank answer
+        if (string.IsNullOrWhiteSpace(UserAnswer))
+        {
+            AnswerChecked = false;
+            IsCorrect = false;
+            ModelState.Remove(nameof(UserAnswer));
+            ModelState.AddModelError(nameof(UserAnswer), "Pole odpowiedzi jest wymagane. Wpisz liczbę (może być ułamek dziesiętny).");
+            return Page();
+        }
+
+        // Evaluate user's answer - CRITICAL: Check format validity first
         var ok = TryParseNumber(UserAnswer, out var userVal);
         AnswerChecked = true;
         IsCorrect = ok && Math.Abs(userVal - CorrectAnswer) < 0.0001;
+
+        // If parsing failed, notify user about invalid input format
+        if (!ok && !string.IsNullOrWhiteSpace(UserAnswer))
+        {
+            _logger.LogWarning("[OnPostSubmit] INVALID input format: UserAnswer='{UserAnswer}'", UserAnswer);
+            ModelState.AddModelError(nameof(UserAnswer), "Odpowiedź zawiera niedozwolone znaki. Wpisz liczbę, np. 42 lub -3.5");
+        }
         
         // Prevent duplicate submissions (e.g., double-click)
         var currentText = $"{A} {Operator} {B}";
@@ -146,7 +163,22 @@ public class EquationsModel : PageModel
 
     private static bool TryParseNumber(string? raw, out double value)
     {
-        var s = (raw ?? string.Empty).Trim().Replace(',', '.');
+        value = 0;
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+            
+        var s = raw.Trim().Replace(',', '.');
+        
+        // Remove invisible Unicode characters that may have slipped through
+        s = System.Text.RegularExpressions.Regex.Replace(s, @"[\u200B\u200C\u200D\u202A\u202B\u202C\u202D\u202E\u2060\uFEFF\u061C]", "");
+        
+        // Security check: ensure the string contains only valid characters
+        // Allow: digits, optional minus sign at start, and optional one decimal point
+        // Must have at least one digit and cannot be just "-" or "."
+        // Valid patterns: "5", "-5", "5.5", "-5.5", ".5", "-.5"
+        if (!System.Text.RegularExpressions.Regex.IsMatch(s, @"^-?\d+(\.\d+)?$|^-?\.\d+$"))
+            return false;
+            
         return double.TryParse(s, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out value);
     }
 

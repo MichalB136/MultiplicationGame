@@ -32,5 +32,5 @@ dotnet restore MultiplicationGame.sln
 # build
 dotnet build MultiplicationGame.sln
 # run tests
-dotnet test MultiplicationGame.sln
+dotnet test --project c:\Code\MultiplicationGame\MultiplicationGame.Tests.csproj
 ```

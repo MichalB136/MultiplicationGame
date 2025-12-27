@@ -2,6 +2,14 @@
 @model MultiplicationGame.Pages.IndexModel
 @{
     ViewData["Title"] = "Home page";
+    
+    // For AJAX requests, return only the fragment
+    if (ViewData["IsPartialView"] as bool? == true)
+    {
+        Layout = null;
+        @await Html.PartialAsync("~/Pages/Shared/_InteractiveFragment.cshtml", Model)
+        return;
+    }
 }
 
 <div class="container" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">

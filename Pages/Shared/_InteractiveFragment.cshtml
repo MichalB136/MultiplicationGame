@@ -86,6 +86,7 @@ else if (Model.Question != null)
     </div>
     }
     <form method="post" class="question-form">
+        @Html.AntiForgeryToken()
         
         <input type="hidden" name="Level" value="@Model.Level" />
         <input type="hidden" name="A" value="@Model.Question?.A" />
@@ -98,6 +99,20 @@ else if (Model.Question != null)
     <input type="hidden" name="GameStartTime" value="@Model.GameStartTime" />
         <input type="hidden" name="NextQuestion" id="NextQuestionField" value="false" />
         <input type="hidden" name="HistoryRaw" value="@(Model.HistoryRaw ?? "")" />
+        
+        @{
+            if (Model.ModelState.TryGetValue("UserAnswerText", out var userAnswerErrors) && userAnswerErrors.Errors.Count > 0)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <strong>Błąd walidacji:</strong>
+                    @foreach (var error in userAnswerErrors.Errors)
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+        }
+        
         <div class="d-flex justify-content-center align-items-center gap-2 my-2 flex-wrap">
             <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:80px;height:80px;">@Model.Question?.A</div>
             <div class="display-3 fw-bold">x</div>
@@ -105,7 +120,16 @@ else if (Model.Question != null)
             <div class="display-3 fw-bold">=</div>
                 <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:110px;height:80px;">
                     <div class="operand-input" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:0.25rem;">
-                        <input type="text" name="UserAnswer" required maxlength="10" class="form-control text-center answer-input" autocomplete="off" pattern="[0-9]*" @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
+                                    <input type="text"
+                                        name="UserAnswerText"
+                                        required
+                                        maxlength="10"
+                                        class="form-control text-center answer-input numeric-input"
+                                        autocomplete="off"
+                                        inputmode="numeric"
+                                        pattern="-?[0-9]+"
+                                        title="Wpisz tylko liczby całkowite (opcjonalnie z minusem)"
+                                        @(Model.AnswerChecked && (Model.IsCorrect || Model.AttemptsLeft == 0) ? "readonly" : "") />
                     </div>
                 </div>
         </div>
@@ -246,7 +270,44 @@ else if (Model.Question != null)
                     if (ans.select) ans.select();
                 }
             } catch (e) { /* ignore focus errors */ }
-        } catch (e) { console && console.warn && console.warn('progress-grid init failed', e); }
+        } catch (e) { /* ignore init errors */ }
+        
+        // Add form submission validation
+        try {
+            var form = document.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    var answerInput = this.querySelector('input[name="UserAnswerText"]') || this.querySelector('input[name="UserAnswer"]');
+                    if (answerInput) {
+                        var value = (answerInput.value || '').trim();
+                        
+                        // Check if empty, just minus, just dot, or combinations
+                        if (!value || value === '-' || value === '.' || value === '-.' || value === '-.') {
+                            e.preventDefault();
+                            alert('Podaj prawidłową liczbę');
+                            answerInput.focus();
+                            return false;
+                        }
+                        
+                        // Check for invalid characters - only digits and optional minus allowed
+                        if (!/^-?\d+$/.test(value)) {
+                            e.preventDefault();
+                            alert('Liczba może zawierać tylko cyfry (i opcjonalnie minus na początek).\nNiedozwolone znaki: spacje, przecinki, kreski, znaki specjalne.');
+                            answerInput.focus();
+                            return false;
+                        }
+                        
+                        // Additional security check: ensure at least one digit exists
+                        if (!/\d/.test(value)) {
+                            e.preventDefault();
+                            alert('Liczba musi zawierać co najmniej jedną cyfrę');
+                            answerInput.focus();
+                            return false;
+                        }
+                    }
+                });
+            }
+        } catch (e) { /* ignore validation errors */ }
     })();
 </script>
 

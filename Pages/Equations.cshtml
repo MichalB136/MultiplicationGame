@@ -54,12 +54,33 @@
     <input type="hidden" name="TotalAnswered" value="@Model.TotalAnswered" />
     <input type="hidden" name="HistoryRaw" value='@Model.HistoryRaw' />
 
+    @{
+        if (Model.ModelState.TryGetValue("UserAnswer", out var userAnswerErrors) && userAnswerErrors.Errors.Count > 0)
+        {
+            <div class="alert alert-danger" role="alert">
+                <strong>Błąd walidacji:</strong>
+                @foreach (var error in userAnswerErrors.Errors)
+                {
+                    <div>@error.ErrorMessage</div>
+                }
+            </div>
+        }
+    }
+
     <div class="d-flex align-items-center justify-content-center mb-3">
         <div class="display-3 me-3 operand-display">@Model.A</div>
         <div class="display-3 me-3 operand-display">@Model.Operator</div>
         <div class="display-3 me-3 operand-display">@Model.B</div>
         <div class="display-3 me-3 operand-display">=</div>
-        <input type="text" name="UserAnswer" value="@Model.UserAnswer" class="form-control equation-input" style="max-width:180px; font-size:2rem; font-weight:600;" autocomplete="off" />
+         <input type="text"
+             name="UserAnswer"
+             value="@Model.UserAnswer"
+             class="form-control equation-input numeric-input"
+             style="max-width:180px; font-size:2rem; font-weight:600;"
+             autocomplete="off"
+               inputmode="decimal"
+               pattern="-?(?:[0-9]+(?:[.,][0-9]+)?|[.,][0-9]+)"
+               title="Wpisz liczbę (może być ułamek dziesiętny, dopuszczalne . lub ,)" />
     </div>
 
     @if (Model.AnswerChecked)
@@ -137,6 +158,7 @@ setTimeout(() => {
     }
     
     form.addEventListener('submit', function(e){
+        // Double-submit prevention only (validation handled by site.js submit guard)
         if (form.dataset.submitted === 'true') {
             e.preventDefault();
             return false;

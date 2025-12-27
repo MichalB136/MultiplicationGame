@@ -48,7 +48,10 @@ public class IndexModel : PageModel
     [BindProperty]
     public int B { get; set; }
     [BindProperty]
-    public int UserAnswer { get; set; }
+    public string UserAnswerText { get; set; } = ""; // Changed to string for proper parsing
+    
+    // Property to expose parsed answer for logging
+    public int UserAnswer => TryParseAnswerText(UserAnswerText, out var val) ? val : 0;
 
     public QuestionDto? Question { get; set; }
     [BindProperty]
@@ -129,10 +132,69 @@ public class IndexModel : PageModel
     RestoreHistoryFromRaw();
     _logger?.LogDebug("[OnPost] Restored history: Count={Count}", History.Count);
 
-        if (ShouldStartNewGame())
+        var startNew = ShouldStartNewGame();
+        if (startNew)
         {
+            // Usuń ewentualne błędy ModelState (np. implicit required dla UserAnswerText)
+            ModelState.Remove(nameof(UserAnswerText));
+            ModelState.ClearValidationState(nameof(UserAnswerText));
+
             _logger?.LogInformation("[OnPost] Starting new game (NextQuestion={NextQuestion}, AttemptsLeft={AttemptsLeft}, PrevIsCorrect={IsCorrect}, AnswerChecked={AnswerChecked})", NextQuestion, AttemptsLeft, IsCorrect, AnswerChecked);
             StartNewGame();
+            
+            // For AJAX requests, return only the fragment
+            if (IsAjaxRequest())
+            {
+                ReturnPartialView();
+            }
+            return;
+        }
+
+        // CRITICAL: Validate UserAnswerText format BEFORE processing
+        // Only digits and optional minus sign allowed - reject commas, spaces, decimals, etc.
+
+        // Obsłuż puste wejście, aby nie pojawiał się domyślny komunikat "field is required"
+        if (string.IsNullOrWhiteSpace(UserAnswerText))
+        {
+            AnswerChecked = false;
+            IsCorrect = false;
+            CorrectAnswer = A * B;
+            NextQuestion = false;
+            Question ??= new QuestionDto(A, B, Level);
+
+            ModelState.Remove(nameof(UserAnswerText));
+            ModelState.AddModelError(nameof(UserAnswerText), "Pole odpowiedzi jest wymagane. Wpisz liczbę całkowitą (np. 5, 12, -3).");
+            
+            // For AJAX requests, return only the fragment
+            if (IsAjaxRequest())
+            {
+                ReturnPartialView();
+            }
+            return;
+        }
+
+        if (!TryParseAnswerText(UserAnswerText, out _))
+        {
+            _logger?.LogWarning("[OnPost] INVALID input detected: UserAnswerText='{UserAnswerText}'", UserAnswerText);
+
+            // Nie traktuj tego jako zużycia próby ani sprawdzonej odpowiedzi – to błąd walidacji wejścia
+            AnswerChecked = false;
+            IsCorrect = false;
+            CorrectAnswer = A * B;
+            NextQuestion = false;
+
+            // Upewnij się, że pytanie pozostaje widoczne (Question może być nullem po re-renderze)
+            Question ??= new QuestionDto(A, B, Level);
+
+            // Nie zmniejszaj prób przy błędnym formacie
+            ModelState.Remove(nameof(UserAnswerText));
+            ModelState.AddModelError(nameof(UserAnswerText), "Odpowiedź zawiera niedozwolone znaki. Wpisz tylko cyfrę lub liczbę (np. 5, 12, -3).");
+            
+            // For AJAX requests, return only the fragment
+            if (IsAjaxRequest())
+            {
+                ReturnPartialView();
+            }
             return;
         }
 
@@ -191,6 +253,23 @@ public class IndexModel : PageModel
         AnswerChecked = false;
         IsCorrect = false;
         CorrectAnswer = 0;
+    }
+
+    private static bool TryParseAnswerText(string? raw, out int value)
+    {
+        value = 0;
+        if (string.IsNullOrWhiteSpace(raw))
+            return false;
+            
+        var s = raw.Trim();
+        
+        // STRICT validation: Only allow digits and optional minus at start
+        // NO conversion, NO cleaning - reject invalid characters
+        // Valid patterns: "5", "-5", "123", "-456"
+        if (!System.Text.RegularExpressions.Regex.IsMatch(s, @"^-?\d+$"))
+            return false;
+            
+        return int.TryParse(s, out value);
     }
 
     private void ProcessAnswer()
@@ -307,7 +386,7 @@ public class IndexModel : PageModel
         var question = _gameService.GetQuestion(Level, SolvedQuestions);
         ApplyQuestion(question);
         ResetQuestionState();
-        UserAnswer = 0;
+        UserAnswerText = ""; // Reset the text field instead of the computed property
         // Zachowaj tryb nauki
         // Learning mode removed
         _logger?.LogDebug("[LoadNextQuestion] Next question loaded: {A}×{B} Level={Level}", A, B, Level);
@@ -340,5 +419,18 @@ public class IndexModel : PageModel
         }
 
         Question ??= new QuestionDto(A, B, Level);
+    }
+    
+    // AJAX support: Check if request is AJAX
+    private bool IsAjaxRequest()
+    {
+        return Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+    }
+    
+    // AJAX support: Return only the interactive fragment partial view
+    private void ReturnPartialView()
+    {
+        // Set ViewData to signal we're rendering a partial
+        ViewData["IsPartialView"] = true;
     }
 }
