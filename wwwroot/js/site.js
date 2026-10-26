@@ -230,21 +230,20 @@ document.addEventListener('paste', function(e) {
 	input.value = cleaned;
 }, false);
 
-// AJAX form submission for game forms to avoid full page reload
+// Submit the homepage game form via AJAX; other game pages use normal POSTs.
 document.addEventListener('submit', async function(e) {
 	const form = e.target;
 	if (!form) return;
 
-	// Only handle forms with class "question-form" (game forms)
+	// Only handle question forms.
 	if (!form.classList.contains('question-form')) return;
-
-	e.preventDefault(); // Always prevent default for game forms
 
 	// Multiplication form validation
 	const multInput = form.querySelector('input[name="UserAnswerText"].numeric-input');
 	if (multInput) {
 		const value = (multInput.value || '').trim();
 		if (!/^-?\d+$/.test(value)) {
+			e.preventDefault();
 			showInputWarning(multInput, 'Dozwolone są tylko cyfry (opcjonalnie minus na początku).');
 			console.error(`🔴 [Submit Guard] Blocked submit (multiplication) invalid value: "${value}"`);
 			return;
@@ -256,11 +255,17 @@ document.addEventListener('submit', async function(e) {
 	if (eqInput) {
 		const value = (eqInput.value || '').trim();
 		if (!/^-?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/.test(value)) {
+			e.preventDefault();
 			showInputWarning(eqInput, 'Wpisz liczbę (może być ułamek dziesiętny, dopuszczalne . lub ,).');
 			console.error(`🔴 [Submit Guard] Blocked submit (equations) invalid value: "${value}"`);
 			return;
 		}
 	}
+
+	const fragmentContainer = document.getElementById('interactiveFragment');
+	if (!fragmentContainer) return;
+
+	e.preventDefault();
 
 	// Submit via AJAX
 	try {
@@ -287,14 +292,8 @@ document.addEventListener('submit', async function(e) {
 		console.log('✅ Received response, updating fragment...');
 
 		// Update the interactive fragment without reloading page
-		const fragmentContainer = document.getElementById('interactiveFragment');
-		if (fragmentContainer) {
-			fragmentContainer.innerHTML = html;
-			console.log('🎯 Fragment updated successfully - NO PAGE RELOAD');
-		} else {
-			console.warn('⚠️ Fragment container not found, fallback to full page load');
-			document.body.innerHTML = html;
-		}
+		fragmentContainer.innerHTML = html;
+		console.log('🎯 Fragment updated successfully - NO PAGE RELOAD');
 
 	} catch (error) {
 		console.error('❌ AJAX submission failed:', error);

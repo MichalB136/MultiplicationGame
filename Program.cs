@@ -7,6 +7,8 @@ builder.Services.AddRazorPages();
 builder.Services.AddControllers();
 // HttpClient factory for internal fragment fetching
 builder.Services.AddHttpClient();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 // Register game services
 // Bind GameSettings from configuration
@@ -15,6 +17,7 @@ builder.Services.Configure<GameSettings>(builder.Configuration.GetSection("GameS
 // Register game services
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IGameStateService, GameStateService>();
+builder.Services.AddSingleton<ITrainingService, TrainingService>();
 
 var app = builder.Build();
 
@@ -36,6 +39,7 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
 app.UseAuthorization();
 
 app.MapControllers();

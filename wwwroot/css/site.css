@@ -25,16 +25,13 @@ html {
   flex-direction: column;
   align-items: center;
 }
-/* Stronger centering: make the inner container-fluid centered and prevent rows from stretching full width */
+/* Center fluid containers while preserving Bootstrap row gutter behavior */
 .page-center-inner .container-fluid {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
   padding-left: 0;
   padding-right: 0;
-}
-.page-center-inner .row {
-  width: 100%;
 }
 
 @media (min-width: 768px) {
@@ -102,6 +99,11 @@ body {
   border-color: #28a745;
   transform: scale(1.05);
   box-shadow: 0 6px 12px rgba(40,167,69,0.12);
+}
+.progress-square.incorrect {
+  background: linear-gradient(135deg,#dc3545,#f56b75);
+  color: #fff;
+  border-color: #dc3545;
 }
 .progress-square.current {
   background: linear-gradient(135deg,#ffc107,#fd7e14);
