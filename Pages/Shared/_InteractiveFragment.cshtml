@@ -2,6 +2,34 @@
 <!-- Interactive fragment partial: extracted from Index.cshtml -->
 @* This partial expects an IndexModel as its model. Keep it in sync with the page model. *@
 
+<form method="post" class="card shadow-sm p-3 mb-3 text-start">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="ApplySettings" value="true" />
+    <input type="hidden" asp-for="Level" />
+    <h2 class="h5 text-center">Ustawienia gry</h2>
+    <div class="row g-2">
+        <div class="col-md-4">
+            <label asp-for="InitialAttempts" class="form-label">Życia</label>
+            <input asp-for="InitialAttempts" type="number" min="0" max="10" class="form-control" />
+            <small class="text-muted">0 oznacza brak limitu.</small>
+            <span asp-validation-for="InitialAttempts" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="BonusAttemptsThreshold" class="form-label">Próg bonusowego życia</label>
+            <input asp-for="BonusAttemptsThreshold" type="number" min="0" max="50" class="form-control" />
+            <small class="text-muted">Poprawne odpowiedzi z rzędu; 0 wyłącza bonus.</small>
+            <span asp-validation-for="BonusAttemptsThreshold" class="text-danger"></span>
+        </div>
+        <div class="col-md-4">
+            <label asp-for="RequiredAnswers" class="form-label">Poprawne odpowiedzi do wygranej</label>
+            <input asp-for="RequiredAnswers" type="number" min="1" max="100" class="form-control" />
+            <small class="text-muted">Wymagane odpowiedzi z rzędu.</small>
+            <span asp-validation-for="RequiredAnswers" class="text-danger"></span>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-outline-primary mt-3">Zastosuj i rozpocznij nową grę</button>
+</form>
+
 @if (Model.GameWon)
 {
     var minutes = Model.GameElapsedSeconds / 60;
@@ -28,6 +56,9 @@
         </div>
         <form method="post">
             <input type="hidden" name="Level" value="@Model.Level" />
+            <input type="hidden" name="InitialAttempts" value="@Model.InitialAttempts" />
+            <input type="hidden" name="BonusAttemptsThreshold" value="@Model.BonusAttemptsThreshold" />
+            <input type="hidden" name="RequiredAnswers" value="@Model.RequiredAnswers" />
             <input type="hidden" name="SolvedQuestions" value="" />
             <input type="hidden" name="Streak" value="0" />
             <input type="hidden" name="AttemptsLeft" value="@Model.InitialAttempts" />
@@ -62,9 +93,12 @@ else if (Model.GameLost)
         </div>
         <form method="post">
             <input type="hidden" name="Level" value="@Model.Level" />
+            <input type="hidden" name="InitialAttempts" value="@Model.InitialAttempts" />
+            <input type="hidden" name="BonusAttemptsThreshold" value="@Model.BonusAttemptsThreshold" />
+            <input type="hidden" name="RequiredAnswers" value="@Model.RequiredAnswers" />
             <input type="hidden" name="SolvedQuestions" value="" />
             <input type="hidden" name="Streak" value="0" />
-            <input type="hidden" name="AttemptsLeft" value="3" />
+            <input type="hidden" name="AttemptsLeft" value="@Model.InitialAttempts" />
             <input type="hidden" name="GameLost" value="false" />
             <input type="hidden" name="GameStartTime" value="0" />
             <button type="submit" class="btn btn-danger btn-lg mt-3">Spróbuj ponownie</button>
@@ -89,6 +123,9 @@ else if (Model.Question != null)
         @Html.AntiForgeryToken()
         
         <input type="hidden" name="Level" value="@Model.Level" />
+        <input type="hidden" name="InitialAttempts" value="@Model.InitialAttempts" />
+        <input type="hidden" name="BonusAttemptsThreshold" value="@Model.BonusAttemptsThreshold" />
+        <input type="hidden" name="RequiredAnswers" value="@Model.RequiredAnswers" />
         <input type="hidden" name="A" value="@Model.Question?.A" />
         <input type="hidden" name="B" value="@Model.Question?.B" />
         <input type="hidden" name="Streak" value="@Model.Streak" />
@@ -189,6 +226,9 @@ else if (Model.Question != null)
                 <h2 class="text-success">Wygrałeś! @Model.RequiredAnswers poprawnych odpowiedzi z rzędu!</h2>
                 <form method="post">
                     <input type="hidden" name="Level" value="@Model.Level" />
+                    <input type="hidden" name="InitialAttempts" value="@Model.InitialAttempts" />
+                    <input type="hidden" name="BonusAttemptsThreshold" value="@Model.BonusAttemptsThreshold" />
+                    <input type="hidden" name="RequiredAnswers" value="@Model.RequiredAnswers" />
                     <input type="hidden" name="Streak" value="0" />
                     <button type="submit" class="btn btn-success">Zagraj ponownie</button>
                 </form>
@@ -274,7 +314,7 @@ else if (Model.Question != null)
         
         // Add form submission validation
         try {
-            var form = document.querySelector('form');
+            var form = document.querySelector('.question-form');
             if (form) {
                 form.addEventListener('submit', function(e) {
                     var answerInput = this.querySelector('input[name="UserAnswerText"]') || this.querySelector('input[name="UserAnswer"]');

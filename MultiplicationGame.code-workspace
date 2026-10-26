@@ -2,11 +2,15 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../MultiplicationGame.worktrees"
 		}
 	],
 	"settings": {
 		"github-actions.workflows.pinned.workflows": [
 			".github/workflows/dotnet-test.yml"
-		]
+		],
+		"dotnet.defaultSolution": "MultiplicationGame.worktrees/worktree-20261026-204442/MultiplicationGame.sln"
 	}
 }

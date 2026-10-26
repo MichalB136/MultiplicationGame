@@ -10,8 +10,10 @@ namespace MultiplicationGame.Pages;
 
 public class IndexModel : PageModel
 {
-    // Learning mode removed: no learning steps
-    private int _requiredCorrectAnswers = 10;
+    private const string PlayerSettingsCookieName = "multiplication-game-settings";
+    private const int MaximumInitialAttempts = 10;
+    private const int MaximumBonusAttemptsThreshold = 50;
+    private const int MaximumRequiredAnswers = 100;
 
     [BindProperty]
     public string HistoryRaw { get; set; } = "";
@@ -19,6 +21,8 @@ public class IndexModel : PageModel
     public ImmutableList<HistoryEntryDto> HistoryWithCorrectness { get; set; } = ImmutableList<HistoryEntryDto>.Empty;
     [BindProperty]
     public bool NextQuestion { get; set; }
+    [BindProperty]
+    public bool ApplySettings { get; set; }
     [BindProperty]
     public int Streak { get; set; } = 0;
     public bool GameWon { get; set; }
@@ -37,8 +41,9 @@ public class IndexModel : PageModel
         _gameStateService = gameStateService;
         _logger = logger;
         _settings = options?.Value;
-        if (_settings is not null && _settings.RequiredCorrectAnswers > 0)
-            _requiredCorrectAnswers = _settings.RequiredCorrectAnswers;
+        InitialAttempts = _settings?.InitialAttempts ?? 3;
+        BonusAttemptsThreshold = _settings?.BonusAttemptsThreshold ?? 5;
+        RequiredAnswers = _settings?.RequiredCorrectAnswers ?? 10;
     }
 
     [BindProperty]
@@ -62,6 +67,12 @@ public class IndexModel : PageModel
     [BindProperty]
     public int AttemptsLeft { get; set; } = 3;
     [BindProperty]
+    public int InitialAttempts { get; set; }
+    [BindProperty]
+    public int BonusAttemptsThreshold { get; set; }
+    [BindProperty]
+    public int RequiredAnswers { get; set; }
+    [BindProperty]
     public int TotalAnswers { get; set; } = 0; // Licznik wszystkich przesłanych odpowiedzi (poprawnych i błędnych)
     [BindProperty]
     public int PerfectStreak { get; set; } = 0; // Licznik poprawnych odpowiedzi bez straty życia
@@ -71,15 +82,14 @@ public class IndexModel : PageModel
     public int GameElapsedSeconds { get; set; } = 0; // Czas gry w sekundach
 
     // Właściwości z logiką biznesową
-    public bool IsGameWon => Streak >= _requiredCorrectAnswers;
-    public bool ShouldContinueGame => Streak < _requiredCorrectAnswers;
-    public int Progress => Math.Min(Streak, _requiredCorrectAnswers);
-    public int RequiredAnswers => _requiredCorrectAnswers;
-    public int InitialAttempts => _settings?.InitialAttempts ?? 3;
-    public int BonusAttemptsThreshold => _settings?.BonusAttemptsThreshold ?? 5;
+    public bool IsGameWon => Streak >= RequiredAnswers;
+    public bool ShouldContinueGame => Streak < RequiredAnswers;
+    public int Progress => Math.Min(Streak, RequiredAnswers);
 
     public void OnGet()
     {
+        LoadPlayerSettings();
+
         // Learning mode removed: ignore mode query/cookie
 
         // Zainicjalizuj timer przy pierwszym załadowaniu gry
@@ -131,6 +141,33 @@ public class IndexModel : PageModel
         // Learning mode removed
     RestoreHistoryFromRaw();
     _logger?.LogDebug("[OnPost] Restored history: Count={Count}", History.Count);
+
+        if (!ArePlayerSettingsValid())
+        {
+            if (A > 0 && B > 0)
+            {
+                Question ??= new QuestionDto(A, B, Level);
+            }
+            else
+            {
+                ApplyQuestion(_gameService.GetQuestion(Level, SolvedQuestions));
+            }
+
+            if (IsAjaxRequest())
+            {
+                ReturnPartialView();
+            }
+            return;
+        }
+
+        if (ApplySettings)
+        {
+            SavePlayerSettings();
+            ModelState.Remove(nameof(UserAnswerText));
+            ModelState.ClearValidationState(nameof(UserAnswerText));
+            StartNewGame();
+            return;
+        }
 
         var startNew = ShouldStartNewGame();
         if (startNew)
@@ -230,7 +267,7 @@ public class IndexModel : PageModel
     {
         Streak = 0;
         PerfectStreak = 0;
-        AttemptsLeft = _settings?.InitialAttempts ?? 3;
+        AttemptsLeft = InitialAttempts;
         SolvedQuestions = "";
         History = ImmutableList<string>.Empty;
         HistoryRaw = "";
@@ -327,8 +364,8 @@ public class IndexModel : PageModel
         AddToHistory();
         
         // Sprawdź czy gracz zasłużył na dodatkową szansę
-        var bonusThreshold = _settings?.BonusAttemptsThreshold ?? 5;
-        var initialAttempts = _settings?.InitialAttempts ?? 3;
+        var bonusThreshold = BonusAttemptsThreshold;
+        var initialAttempts = InitialAttempts;
         
         if (initialAttempts > 0 && bonusThreshold > 0 && PerfectStreak >= bonusThreshold)
         {
@@ -394,7 +431,7 @@ public class IndexModel : PageModel
 
     private void HandleIncorrectAnswer()
     {
-        var initialAttempts = _settings?.InitialAttempts ?? 3;
+        var initialAttempts = InitialAttempts;
         
         // Reset perfect streak when losing a life
         PerfectStreak = 0;
@@ -433,4 +470,77 @@ public class IndexModel : PageModel
         // Set ViewData to signal we're rendering a partial
         ViewData["IsPartialView"] = true;
     }
+
+    private void LoadPlayerSettings()
+    {
+        if (!Request.Cookies.TryGetValue(PlayerSettingsCookieName, out var rawSettings))
+        {
+            return;
+        }
+
+        var values = rawSettings.Split('-');
+        if (values.Length == 3 &&
+            int.TryParse(values[0], out var initialAttempts) &&
+            int.TryParse(values[1], out var bonusAttemptsThreshold) &&
+            int.TryParse(values[2], out var requiredAnswers) &&
+            IsPlayerSettingsValid(initialAttempts, bonusAttemptsThreshold, requiredAnswers))
+        {
+            InitialAttempts = initialAttempts;
+            BonusAttemptsThreshold = bonusAttemptsThreshold;
+            RequiredAnswers = requiredAnswers;
+            return;
+        }
+
+        Response.Cookies.Delete(PlayerSettingsCookieName);
+    }
+
+    private void SavePlayerSettings()
+    {
+        Response.Cookies.Append(
+            PlayerSettingsCookieName,
+            $"{InitialAttempts}-{BonusAttemptsThreshold}-{RequiredAnswers}",
+            new CookieOptions
+            {
+                HttpOnly = true,
+                IsEssential = true,
+                MaxAge = TimeSpan.FromDays(365),
+                Path = "/",
+                SameSite = SameSiteMode.Lax,
+                Secure = Request.IsHttps
+            });
+    }
+
+    private bool ArePlayerSettingsValid()
+    {
+        if (InitialAttempts is < 0 or > MaximumInitialAttempts)
+        {
+            ModelState.AddModelError(
+                nameof(InitialAttempts),
+                $"Liczba żyć musi wynosić od 0 do {MaximumInitialAttempts}.");
+        }
+
+        if (BonusAttemptsThreshold is < 0 or > MaximumBonusAttemptsThreshold)
+        {
+            ModelState.AddModelError(
+                nameof(BonusAttemptsThreshold),
+                $"Próg bonusu musi wynosić od 0 do {MaximumBonusAttemptsThreshold}.");
+        }
+
+        if (RequiredAnswers is < 1 or > MaximumRequiredAnswers)
+        {
+            ModelState.AddModelError(
+                nameof(RequiredAnswers),
+                $"Liczba poprawnych odpowiedzi musi wynosić od 1 do {MaximumRequiredAnswers}.");
+        }
+
+        return IsPlayerSettingsValid(InitialAttempts, BonusAttemptsThreshold, RequiredAnswers);
+    }
+
+    private static bool IsPlayerSettingsValid(
+        int initialAttempts,
+        int bonusAttemptsThreshold,
+        int requiredAnswers) =>
+        initialAttempts is >= 0 and <= MaximumInitialAttempts &&
+        bonusAttemptsThreshold is >= 0 and <= MaximumBonusAttemptsThreshold &&
+        requiredAnswers is >= 1 and <= MaximumRequiredAnswers;
 }
