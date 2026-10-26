@@ -1,0 +1,307 @@
+@page
+@model MultiplicationGame.Pages.TrainingModel
+@{
+    ViewData["Title"] = "Trening tabliczki mnożenia";
+}
+
+<div class="container" style="padding-top: 0.5rem; padding-bottom: 0.5rem;">
+    <div id="trainingStorageMessage" class="alert alert-warning d-none" role="alert"></div>
+
+    @if (Model.SessionState is null)
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="text-center">
+                    <h1 class="h3 mb-3">Wybierz trening</h1>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <a asp-page="/Index" class="card h-100 text-decoration-none text-dark">
+                                <div class="card-body">
+                                    <h2 class="h5">Mieszane działania</h2>
+                                    <p class="mb-0">Kontynuuj dotychczasowy trening.</p>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body">
+                                    <h2 class="h5">Wybierz tabliczkę</h2>
+                                    <p>Wybierz jedną lub kilka tabliczek. Runda zawiera 10 pytań.</p>
+
+                                    <form method="post" asp-page-handler="Start" id="trainingSetupForm">
+                                        <input asp-for="KnowledgeRaw" id="trainingKnowledge" type="hidden" />
+                                        <fieldset class="mb-3">
+                                            <legend class="fs-6">Tabliczki mnożenia</legend>
+                                            <div class="d-flex flex-wrap justify-content-center gap-2">
+                                                @for (var table = 1; table <= 10; table++)
+                                                {
+                                                    <label class="btn btn-outline-secondary">
+                                                        <input class="form-check-input me-1"
+                                                               type="checkbox"
+                                                               name="SelectedTables"
+                                                               value="@table"
+                                                               checked="@(Model.SelectedTables.Contains(table) ? "checked" : null)" />
+                                                        @table
+                                                    </label>
+                                                }
+                                            </div>
+                                        </fieldset>
+                                        <div class="text-start mb-3">
+                                            <div class="form-check">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       name="AdaptiveMode"
+                                                       id="adaptiveMode"
+                                                       value="true"
+                                                       checked="@(Model.AdaptiveMode ? "checked" : null)" />
+                                                <label class="form-check-label" for="adaptiveMode">
+                                                    Trening adaptacyjny
+                                                </label>
+                                                <div class="form-text">Częściej ćwiczy działania, które sprawiają trudność.</div>
+                                            </div>
+                                            <div class="form-check mt-2">
+                                                <input type="checkbox"
+                                                       class="form-check-input"
+                                                       name="HintsEnabled"
+                                                       id="hintsEnabled"
+                                                       value="true"
+                                                       checked="@(Model.HintsEnabled ? "checked" : null)" />
+                                                <label class="form-check-label" for="hintsEnabled">
+                                                    Włącz podpowiedzi
+                                                </label>
+                                            </div>
+                                        </div>
+                                        @if (Model.ModelState.Values.Any(entry => entry.Errors.Count > 0))
+                                        {
+                                            <div class="alert alert-danger" role="alert">
+                                                <strong>Błąd walidacji:</strong>
+                                                @foreach (var error in Model.ModelState.Values.SelectMany(entry => entry.Errors))
+                                                {
+                                                    <div>@error.ErrorMessage</div>
+                                                }
+                                            </div>
+                                        }
+                                        <button type="submit" class="btn btn-primary">Zaczynamy!</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card text-start">
+                        <div class="card-body">
+                            <h2 class="h5">Moje postępy</h2>
+                            <p class="text-muted">Zapis lokalny w tej przeglądarce — bez konta.</p>
+                            <div id="trainingProgressTotals" aria-live="polite">
+                                Ładowanie zapisanych wyników…
+                            </div>
+                            <ul id="trainingWeakFacts" class="list-group list-group-flush my-2"></ul>
+                            <button type="button" id="clearTrainingProgress" class="btn btn-outline-secondary btn-sm">
+                                Wyczyść zapisane postępy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10">
+                <div class="text-center">
+                    @if (!Model.IsComplete)
+                    {
+                        <h1 class="h4 mb-1">Trening tabliczki mnożenia</h1>
+                        <div class="text-muted mb-3">
+                            Pytanie @(Model.SessionState.Answers.Count + 1) z @Model.SessionState.Questions.Count
+                            · @(Model.SessionState.IsAdaptive ? "tryb adaptacyjny" : "tryb standardowy")
+                            @if (Model.SessionState.HintsEnabled)
+                            {
+                                <span>· podpowiedzi włączone</span>
+                            }
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-start justify-content-center gap-3">
+                            <form method="post"
+                                  asp-page-handler="Answer"
+                                  class="question-form"
+                                  style="max-width: 720px; width: 100%;">
+                                <input type="hidden"
+                                       name="UsedHint"
+                                       id="usedHint"
+                                       value="@(Model.UsedHint ? "true" : "false")" />
+                                @if (Model.ModelState.Values.Any(entry => entry.Errors.Count > 0))
+                                {
+                                    <div class="alert alert-danger" role="alert">
+                                        <strong>Błąd walidacji:</strong>
+                                        @foreach (var error in Model.ModelState.Values.SelectMany(entry => entry.Errors))
+                                        {
+                                            <div>@error.ErrorMessage</div>
+                                        }
+                                    </div>
+                                }
+
+                                <div class="d-flex justify-content-center align-items-center gap-2 my-2 flex-wrap">
+                                    <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:80px;height:80px;">
+                                        @Model.CurrentQuestion!.A
+                                    </div>
+                                    <div class="display-3 fw-bold">×</div>
+                                    <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:80px;height:80px;">
+                                        @Model.CurrentQuestion!.B
+                                    </div>
+                                    <div class="display-3 fw-bold">=</div>
+                                    <div class="display-3 operand-display border border-primary rounded-4 bg-light shadow-sm d-flex align-items-center justify-content-center" style="width:110px;height:80px;">
+                                        <input asp-for="UserAnswerText"
+                                               class="form-control text-center answer-input numeric-input"
+                                               autocomplete="off"
+                                               inputmode="numeric"
+                                               required
+                                               maxlength="10"
+                                               pattern="-?[0-9]+"
+                                               title="Wpisz tylko liczbę całkowitą"
+                                               autofocus
+                                               style="height:100%; border:0; background:transparent; box-shadow:none; font-size:2.4rem;" />
+                                    </div>
+                                </div>
+
+                                @if (Model.CurrentHint is not null)
+                                {
+                                    <details id="trainingHint"
+                                             class="alert alert-info text-start mx-auto mb-2"
+                                             style="max-width: 520px;"
+                                             open="@(Model.UsedHint ? "open" : null)">
+                                        <summary>Poproś o podpowiedź</summary>
+                                        <p class="mb-0 mt-2">@Model.CurrentHint</p>
+                                    </details>
+                                }
+
+                                @if (Model.LastAnswer is not null)
+                                {
+                                    <div class="alert @(Model.LastAnswer.IsCorrect ? "alert-success" : "alert-danger") mb-2">
+                                        @if (Model.LastAnswer.IsCorrect)
+                                        {
+                                            <span>
+                                                Poprawna odpowiedź!
+                                                @(Model.LastAnswer.UsedHint ? " (z podpowiedzią)" : "")
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span>
+                                                Poprawny wynik:
+                                                @Model.LastAnswer.Question.A × @Model.LastAnswer.Question.B =
+                                                @(Model.LastAnswer.Question.A * Model.LastAnswer.Question.B)
+                                            </span>
+                                        }
+                                    </div>
+                                }
+
+                                <button type="submit" class="btn btn-primary mt-1">Sprawdź</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex flex-wrap align-items-start justify-content-center gap-3">
+                            <div class="card shadow-sm text-start" style="max-width: 720px; width: 100%;">
+                                <div class="card-body">
+                                    <h1 class="h3 text-center mb-3">Podsumowanie</h1>
+                                    <p class="text-center">
+                                        Poprawne odpowiedzi:
+                                        <strong>@Model.CorrectAnswers / @Model.SessionState.Answers.Count</strong>
+                                        <br />
+                                        Czas:
+                                        <strong>@(Model.ElapsedSeconds / 60) min @(Model.ElapsedSeconds % 60) sek</strong>
+                                    </p>
+
+                                    <ul class="list-group mb-3">
+                                        @foreach (var answer in Model.SessionState.Answers)
+                                        {
+                                            <li class="list-group-item d-flex justify-content-between @(answer.IsCorrect ? "list-group-item-success" : "list-group-item-danger")">
+                                                <span>
+                                                    @answer.Question.A × @answer.Question.B =
+                                                    @(answer.Question.A * answer.Question.B)
+                                                    (Twoja odpowiedź: @answer.UserAnswer)
+                                                    @if (answer.UsedHint)
+                                                    {
+                                                        <small class="d-block">Rozwiązano z podpowiedzią</small>
+                                                    }
+                                                </span>
+                                                <strong>@(answer.IsCorrect ? "Poprawnie" : "Błąd")</strong>
+                                            </li>
+                                        }
+                                    </ul>
+
+                                    <div class="d-flex flex-wrap justify-content-center gap-2">
+                                        @if (Model.SessionState.Mistakes.Count > 0)
+                                        {
+                                            <form method="post" asp-page-handler="RepeatMistakes">
+                                                <button type="submit" class="btn btn-warning">
+                                                    Powtórz błędne działania (@Model.SessionState.Mistakes.Count)
+                                                </button>
+                                            </form>
+                                        }
+                                        <form method="post" asp-page-handler="NewTraining">
+                                            <button type="submit" class="btn btn-primary">Wybierz kolejny trening</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="progress-panel mx-auto mt-3">
+                        <h6 class="text-center mb-2">Postęp</h6>
+                        <div class="progress-grid">
+                            @for (var i = 1; i <= Model.SessionState.Questions.Count; i++)
+                            {
+                                var answer = i <= Model.SessionState.Answers.Count
+                                    ? Model.SessionState.Answers[i - 1]
+                                    : null;
+                                var isCurrent = i == Model.SessionState.Answers.Count + 1 && !Model.IsComplete;
+                                var statusClass = answer is not null
+                                    ? answer.IsCorrect ? "completed" : "incorrect"
+                                    : isCurrent ? "current" : "";
+                                var statusText = answer is not null
+                                    ? answer.IsCorrect ? "Poprawna odpowiedź" : "Błędna odpowiedź"
+                                    : isCurrent ? "Bieżące pytanie" : "Jeszcze nie rozwiązano";
+
+                                <div class="progress-square @statusClass" title="@($"{i}: {statusText}")">
+                                    @i
+                                </div>
+                            }
+                        </div>
+
+                        <div class="text-center mt-2">
+                            <small class="text-muted">
+                                @Model.SessionState.Answers.Count/@Model.SessionState.Questions.Count ukończone
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.SessionState is { } sessionState)
+{
+    <div id="trainingAnswerEvents" hidden>
+        @for (var index = 0; index < sessionState.Answers.Count; index++)
+        {
+            var answer = sessionState.Answers[index];
+            <span class="training-answer-event"
+                  data-round-id="@sessionState.RoundId.ToString("N")"
+                  data-index="@index"
+                  data-a="@answer.Question.A"
+                  data-b="@answer.Question.B"
+                  data-correct="@(answer.IsCorrect ? "true" : "false")"
+                  data-assisted="@(answer.UsedHint ? "true" : "false")"></span>
+        }
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/training.js" asp-append-version="true"></script>
+}
