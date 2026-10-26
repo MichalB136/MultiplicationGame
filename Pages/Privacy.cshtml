@@ -1,8 +1,21 @@
 ﻿@page
 @model PrivacyModel
 @{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Prywatność";
 }
 <h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<p>
+    Aplikacja zapisuje statystyki ćwiczeń w pamięci localStorage przeglądarki.
+    Obejmują one liczbę prób, poprawnych odpowiedzi i użytych podpowiedzi dla poszczególnych działań.
+</p>
+<p>
+    Dane pozostają w tej przeglądarce i nie są synchronizowane między urządzeniami.
+    Tryb adaptacyjny przesyła zapisane statystyki do aplikacji tylko po to, aby dobrać pytania;
+    aplikacja nie zapisuje tych statystyk na serwerze. Bieżąca runda jest przechowywana tymczasowo
+    w sesji aplikacji.
+</p>
+<p>
+    Zapisane statystyki można usunąć przyciskiem „Wyczyść zapisane postępy” na ekranie wyboru treningu
+    albo przez wyczyszczenie danych witryny w przeglądarce.
+</p>
