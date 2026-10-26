@@ -264,7 +264,7 @@ else if (Model.Question != null)
             }
             // Focus the answer input (if present and editable) so user can type immediately
             try {
-                var ans = searchRoot.querySelector('input[name="UserAnswer"]');
+                var ans = searchRoot.querySelector('input[name="UserAnswerText"]') || searchRoot.querySelector('input[name="UserAnswer"]');
                 if (ans && !ans.readOnly) {
                     ans.focus();
                     if (ans.select) ans.select();
